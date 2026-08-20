@@ -5,4 +5,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['setmeta', '-h', 'Cache-Control:no-cache, max-age=0', 'gs://musica-frontend-test/index.html']
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 timeout: '120s'
