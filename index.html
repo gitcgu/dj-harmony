@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ Harmonic — _beat.json</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:18px;
+  background:#080c14;
+  color:#e9eef7;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.top{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+h1{margin:0 22px 0 0;font-size:25px}
+
+button{
+  padding:9px 13px;
+  border-radius:8px;
+  border:1px solid #344056;
+  background:#151c29;
+  color:#e9eef7;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button:hover{background:#222d40}
+button.active{background:#2367d1;border-color:#5b9cff}
+
+#autoPlay{
+  border-color:#36d47a;
+  background:#153a27;
+}
+
+#status{color:#9ba9bc;margin-left:8px}
+
+#info{
+  display:inline-block;
+  padding:9px 13px;
+  border-radius:9px;
+  background:rgba(255,255,255,.045);
+  margin-bottom:12px;
+  color:#b4bfd0;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:330px minmax(0,1fr);
+  gap:14px;
+  height:520px;
+}
+
+.deck-list{
+  display:grid;
+  grid-template-rows:repeat(3,1fr);
+  gap:10px;
+}
+
+.deck{
+  position:relative;
+  padding:13px 12px 12px 62px;
+  border:1px solid #263249;
+  border-radius:13px;
+  background:#0e141f;
+  overflow:hidden;
+}
+
+.deck-name{
+  position:absolute;
+  left:17px;
+  top:14px;
+  font-size:27px;
+  font-weight:800;
+}
+
+.title{
+  font-weight:700;
+  font-size:15px;
+  line-height:1.3;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.meta{
+  font-size:12px;
+  color:#8fa0b8;
+  margin-top:6px;
+}
+
+.state{
+  font-size:11px;
+  color:#57e697;
+  margin-top:6px;
+  font-weight:700;
+}
+
+.controls{
+  position:absolute;
+  left:62px;
+  bottom:12px;
+  display:flex;
+  gap:7px;
+}
+
+#canvas{
+  width:100%;
+  height:520px;
+  display:block;
+  border:1px solid #263249;
+  border-radius:14px;
+  background:#090e17;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+#canvas.dragging{cursor:grabbing}
+
+.help{
+  margin-top:13px;
+  color:#8f9db1;
+  font-size:12px;
+  line-height:1.55;
+}
+
+@media(max-width:850px){
+  .layout{grid-template-columns:1fr;height:auto}
+  .deck-list{height:500px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <h1>🎧 DJ Harmonic</h1>
+
+  <button class="mode" data-mode="cool">COOL</button>
+  <button class="mode active" data-mode="normal">NORMAL</button>
+  <button class="mode" data-mode="energy">ENERGY</button>
+  <button class="mode" data-mode="super">SUPER ENERGY</button>
+
+  <button id="autoPlay">▶ AUTO PLAY</button>
+
+  <span id="status">Recherche des _beat.json...</span>
+</div>
+
+<div id="info">
+  Source unique : <strong>SONS_MP3_pied_key/*.json</strong>
+  — BPM = <strong>original_bpm</strong>
+  — KEY = <strong>key</strong>
+  — rythme = <strong>beats</strong>
+</div>
+
+<div class="layout">
+
+  <div class="deck-list">
+
+    <div class="deck">
+      <div class="deck-name" style="color:#58a6ff">A</div>
+      <div class="title" id="title-A">--</div>
+      <div class="meta" id="meta-A">--</div>
+      <div class="state" id="state-A">PRÊT</div>
+      <div class="controls">
+        <button id="play-A">▶ / ❚❚</button>
+        <button id="next-A">NEXT ▶▶</button>
+        <button id="sync-A">SYNC</button>
+      </div>
+    </div>
+
+    <div class="deck">
+      <div class="deck-name" style="color:#ff6b9d">B</div>
+      <div class="title" id="title-B">--</div>
+      <div class="meta" id="meta-B">--</div>
+      <div class="state" id="state-B">PRÊT</div>
+      <div class="controls">
+        <button id="play-B">▶ / ❚❚</button>
+        <button id="next-B">NEXT ▶▶</button>
+        <button id="sync-B">SYNC</button>
+      </div>
+    </div>
+
+    <div class="deck">
+      <div class="deck-name" style="color:#64ff9b">C</div>
+      <div class="title" id="title-C">--</div>
+      <div class="meta" id="meta-C">--</div>
+      <div class="state" id="state-C">PRÊT</div>
+      <div class="controls">
+        <button id="play-C">▶ / ❚❚</button>
+        <button id="next-C">NEXT ▶▶</button>
+        <button id="sync-C">SYNC</button>
+      </div>
+    </div>
+
+  </div>
+
+  <canvas id="canvas"></canvas>
+</div>
+
+<div class="help">
+  <b>Timeline :</b> les beats arrivent de la droite, passent par NOW et disparaissent à gauche.
+  L'échelle est négative à gauche et positive à droite.
+  <br>
+  <b>SEEK :</b> cliquer + glisser horizontalement sur la ligne A, B ou C déplace réellement la lecture.
+  <br>
+  <b>Lecture :</b> début = premier beat du _beat.json ; fin = dernier beat du _beat.json.
+  <br>
+  <b>Auto :</b> lecture infinie A → B → C → A → B → C → ... avec recouvrement/crossfade de 30 secondes.
+  <br>
+  <b>NEXT :</b> sélection basée sur original_bpm + KEY depuis catalogue.json.
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
+
+/* const BEAT_DIR = "/SONS_MP3_pied_key/";
+const MP3_DIR = "/SONS_MP3/"; */
+
+const BEAT_DIR = "https://storage.googleapis.com/musica-mp3-bucket/beat/";
+const MP3_DIR = "https://storage.googleapis.com/musica-mp3-bucket/";
+
+const TRANSITION_SECONDS = 30;
+const BPM_TOLERANCE = 0.05;
+
+const TIMELINE_PAST = 20;
+const TIMELINE_FUTURE = 45;
+const NOW_RATIO = 0.34;
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+/* ============================================================
+   ETAT GLOBAL
+   ============================================================ */
+
+let TRACKS = [];
+let mode = "normal";
+let auto = false;
+let drag = null;
+
+/* ============================================================
+   DECKS
+   ============================================================ */
+
+function createDeck(){
+  return {
+    audio: new Audio(),
+    track: null,
+    beats: [],
+    startBeat: 0,
+    endBeat: 0,
+    loaded: false,
+    transition: false,
+    beatIndex: 0,
+    chain: "idle",
+    seeking: false,
+    seekTarget: null
+  };
+}
+
+const decks = {
+  A: createDeck(),
+  B: createDeck(),
+  C: createDeck()
+};
+
+/* ============================================================
+   STATUS / UI
+   ============================================================ */
+
+function status(text){
+  document.getElementById("status").textContent = text;
+}
+
+function state(deckName,text){
+  document.getElementById("state-" + deckName).textContent = text;
+}
+
+/* ============================================================
+   URLS
+   ============================================================ */
+
+function mp3Url(track){
+  return MP3_DIR + encodeURIComponent(String(track.file).trim());
+}
+
+/* ============================================================
+   CATALOGUE
+   ============================================================ */
+
+async function loadCatalogue(){
+  const response = await fetch(
+    BEAT_DIR + "catalogue.json?t=" + Date.now(),
+    {cache:"no-store"}
+  );
+
+  if(!response.ok){
+    throw new Error("catalogue.json introuvable (" + response.status + ")");
+  }
+
+  const data = await response.json();
+
+  if(!Array.isArray(data)){
+    throw new Error("catalogue.json doit contenir un tableau.");
+  }
+
+  const result = [];
+
+  for(const item of data){
+    if(!item || !item.file || !item.beatFile){
+      continue;
+    }
+
+    result.push({
+      file: String(item.file),
+      original_bpm: Number(item.original_bpm),
+      key: String(item.key || ""),
+      beatFile: String(item.beatFile)
+    });
+  }
+
+  if(!result.length){
+    throw new Error("catalogue.json est vide.");
+  }
+
+  return result;
+}
+
+/* ============================================================
+   CACHE BEATS
+   ============================================================ */
+
+const beatCache = new Map();
+
+async function hydrateTrack(track){
+  if(!track){
+    return null;
+  }
+
+  const cacheKey = track.beatFile || track.file;
+
+  if(beatCache.has(cacheKey)){
+    return beatCache.get(cacheKey);
+  }
+
+  const response = await fetch(
+    BEAT_DIR + encodeURIComponent(track.beatFile) + "?t=" + Date.now(),
+    {cache:"no-store"}
+  );
+
+  if(!response.ok){
+    throw new Error(track.beatFile + " HTTP " + response.status);
+  }
+
+  const data = await response.json();
+
+  data.file = track.file;
+  data.original_bpm = track.original_bpm;
+  data.key = track.key;
+  data.beatFile = track.beatFile;
+
+  if(!Array.isArray(data.beats)){
+    data.beats = [];
+  }
+
+  data.beats = data.beats
+    .map(value => {
+      if(typeof value === "number"){
+        return value;
+      }
+
+      if(value && Number.isFinite(Number(value.time))){
+        return Number(value.time);
+      }
+
+      if(value && Number.isFinite(Number(value.timestamp))){
+        return Number(value.timestamp);
+      }
+
+      return null;
+    })
+    .filter(Number.isFinite)
+    .sort((a,b) => a - b);
+
+  data.startBeat = data.beats.length ? data.beats[0] : 0;
+  data.endBeat = data.beats.length
+    ? data.beats[data.beats.length - 1]
+    : Number(data.duration) || 0;
+
+  beatCache.set(cacheKey,data);
+  return data;
+}
+
+/* ============================================================
+   AFFICHAGE
+   ============================================================ */
+
+function showTrack(deckName,track){
+  const title = document.getElementById("title-" + deckName);
+  const meta = document.getElementById("meta-" + deckName);
+
+  title.textContent = track.file;
+
+  const bpm = Number(track.original_bpm);
+
+  meta.textContent =
+    (Number.isFinite(bpm) ? bpm.toFixed(2) : "--") +
+    " BPM • " + (track.key || "--") +
+    " • START " + Number(track.startBeat).toFixed(3) +
+    "s • END " + Number(track.endBeat).toFixed(3) + "s";
+}
+
+/* ============================================================
+   SEEK CENTRAL
+   ============================================================ */
+
+function clampAudioTime(deck,requestedTime){
+  let min = Number.isFinite(Number(deck.startBeat))
+    ? Number(deck.startBeat)
+    : 0;
+
+  let max = Number.isFinite(Number(deck.endBeat))
+    ? Number(deck.endBeat)
+    : Infinity;
+
+  if(Number.isFinite(deck.audio.duration)){
+    max = Math.min(max,deck.audio.duration);
+  }
+
+  return Math.max(min,Math.min(Number(requestedTime),max));
+}
+
+function setAudioTime(deckName,requestedTime){
+  const deck = decks[deckName];
+
+  if(!deck || !deck.audio || !deck.track){
+    return false;
+  }
+
+  const target = clampAudioTime(deck,requestedTime);
+
+  if(!Number.isFinite(target)){
+    return false;
+  }
+
+  deck.seeking = true;
+  deck.seekTarget = target;
+
+  try{
+    deck.audio.currentTime = target;
+  }catch(error){
+    console.error("[SEEK ERROR]",deckName,error);
+    deck.seeking = false;
+    deck.seekTarget = null;
+    return false;
+  }
+
+  updateBeatIndex(deckName);
+  draw();
+
+  window.clearTimeout(deck._seekTimer);
+
+  deck._seekTimer = window.setTimeout(() => {
+    deck.seeking = false;
+    deck.seekTarget = null;
+    updateBeatIndex(deckName);
+    draw();
+  },120);
+
+  return true;
+}
+
+/* ============================================================
+   CHARGEMENT D'UN DECK
+   ============================================================ */
+
+async function loadDeck(deckName,track,play=false){
+  const deck = decks[deckName];
+
+  if(!deck || !track){
+    return;
+  }
+
+  deck.audio.pause();
+  deck.audio.volume = 1;
+
+  deck.track = track;
+  deck.beats = Array.isArray(track.beats) ? track.beats.slice() : [];
+  deck.startBeat = Number(track.startBeat) || 0;
+  deck.endBeat = Number(track.endBeat) || 0;
+  deck.beatIndex = 0;
+  deck.loaded = false;
+  deck.transition = false;
+  deck.chain = "idle";
+  deck.seeking = false;
+  deck.seekTarget = null;
+
+  state(deckName,"CHARGEMENT...");
+
+  const url = mp3Url(track);
+
+  await new Promise((resolve,reject) => {
+    let finished = false;
+
+    function cleanup(){
+      deck.audio.removeEventListener("loadedmetadata",onReady);
+      deck.audio.removeEventListener("canplay",onReady);
+      deck.audio.removeEventListener("error",onError);
+    }
+
+    function onReady(){
+      if(finished) return;
+      finished = true;
+      cleanup();
+      resolve();
+    }
+
+    function onError(){
+      if(finished) return;
+      finished = true;
+      cleanup();
+      reject(new Error("MP3 introuvable : " + track.file + " | URL : " + url));
+    }
+
+    deck.audio.addEventListener("loadedmetadata",onReady);
+    deck.audio.addEventListener("canplay",onReady);
+    deck.audio.addEventListener("error",onError);
+
+    deck.audio.src = url;
+    deck.audio.load();
+
+    if(deck.audio.readyState >= 1){
+      onReady();
+    }
+  });
+
+  deck.loaded = true;
+
+  showTrack(deckName,track);
+
+  setAudioTime(deckName,deck.startBeat);
+
+  state(
+    deckName,
+    "PRÊT • " +
+    deck.startBeat.toFixed(3) +
+    "s → " +
+    deck.endBeat.toFixed(3) +
+    "s"
+  );
+
+  if(play){
+    await deck.audio.play();
+  }
+}
+
+async function loadCandidateIntoDeck(deckName,candidate,play=false){
+  if(!candidate){
+    return false;
+  }
+
+  const full = await hydrateTrack(candidate);
+  await loadDeck(deckName,full,play);
+  return true;
+}
+
+/* ============================================================
+   BPM / KEY / MODES
+   ============================================================ */
+
+function bpmCompatible(a,b){
+  a = Number(a);
+  b = Number(b);
+
+  if(!Number.isFinite(a) || !Number.isFinite(b) || a === 0){
+    return false;
+  }
+
+  return Math.abs(a-b) / a <= BPM_TOLERANCE;
+}
+
+function keyCompatible(a,b){
+  a = String(a || "").toUpperCase();
+  b = String(b || "").toUpperCase();
+
+  if(!a || !b || a === b){
+    return true;
+  }
+
+  const A = a.match(/^(\d+)([AB])$/);
+  const B = b.match(/^(\d+)([AB])$/);
+
+  if(!A || !B){
+    return false;
+  }
+
+  const na = Number(A[1]);
+  const nb = Number(B[1]);
+
+  return na === nb ||
+    Math.abs(na-nb) === 1 ||
+    Math.abs(na-nb) === 11;
+}
+
+function bpmInSelectedMode(originalBpm){
+  const bpm = Number(originalBpm);
+
+  if(!Number.isFinite(bpm)){
+    return false;
+  }
+
+  switch(mode){
+    case "cool":
+      return bpm < 90;
+    case "normal":
+      return bpm >= 90 && bpm < 105;
+    case "energy":
+      return bpm >= 105 && bpm < 120;
+    case "super":
+      return bpm >= 120;
+    default:
+      return true;
+  }
+}
+
+function chooseNext(current){
+  if(!current){
+    return null;
+  }
+
+  let candidates = TRACKS.filter(track =>
+    track.file !== current.file &&
+    bpmInSelectedMode(track.original_bpm)
+  );
+
+  if(!candidates.length){
+    return null;
+  }
+
+  const harmonic = candidates.filter(track =>
+    bpmCompatible(current.original_bpm,track.original_bpm) &&
+    keyCompatible(current.key,track.key)
+  );
+
+  if(harmonic.length){
+    return harmonic[Math.floor(Math.random()*harmonic.length)];
+  }
+
+  const bpmOnly = candidates.filter(track =>
+    bpmCompatible(current.original_bpm,track.original_bpm)
+  );
+
+  if(bpmOnly.length){
+    return bpmOnly[Math.floor(Math.random()*bpmOnly.length)];
+  }
+
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+/* ============================================================
+   NEXT MANUEL
+   ============================================================ */
+
+async function manualNext(deckName){
+  const deck = decks[deckName];
+
+  let source = deck.track;
+
+  if(!source && deckName === "B"){
+    source = decks.A.track;
+  }
+
+  if(!source && deckName === "C"){
+    source = decks.B.track || decks.A.track;
+  }
+
+  if(!source){
+    state(deckName,"ATTENTE • AUCUNE SOURCE");
+    return;
+  }
+
+  const next = chooseNext(source);
+
+  if(!next){
+    state(deckName,"ATTENTE • PAS DE MORCEAU COMPATIBLE");
+    return;
+  }
+
+  try{
+    await loadCandidateIntoDeck(deckName,next,false);
+    if(!auto){
+      state(deckName,"PRÊT");
+    }
+  }catch(error){
+    console.error("[NEXT " + deckName + "]",error);
+    state(deckName,"ERREUR CHARGEMENT");
+  }
+}
+
+/* ============================================================
+   CHAINE INFINIE A → B → C → A → B → C → ...
+   ============================================================ */
+
+function nextName(deckName){
+  if(deckName === "A") return "B";
+  if(deckName === "B") return "C";
+  return "A";
+}
+
+/*
+ * Sélection automatique robuste :
+ * 1) respecte le mode + BPM + KEY quand c'est possible ;
+ * 2) si le mode ne contient plus de morceau compatible, on élargit
+ *    automatiquement la recherche afin que l'AUTO ne s'arrête jamais ;
+ * 3) si le catalogue ne contient qu'un seul titre, il peut être rejoué.
+ */
+function chooseNextInfinite(current){
+  if(!current || !TRACKS.length){
+    return null;
+  }
+
+  let candidates = TRACKS.filter(track => track.file !== current.file);
+
+  /* Priorité absolue : mode sélectionné. */
+  let modeCandidates = candidates.filter(track =>
+    bpmInSelectedMode(track.original_bpm)
+  );
+
+  /* Si aucun autre titre du mode n'existe, on ne casse pas la boucle. */
+  if(!modeCandidates.length){
+    modeCandidates = candidates;
+  }
+
+  /* Harmonie + BPM. */
+  let harmonic = modeCandidates.filter(track =>
+    bpmCompatible(current.original_bpm,track.original_bpm) &&
+    keyCompatible(current.key,track.key)
+  );
+
+  if(harmonic.length){
+    return harmonic[Math.floor(Math.random()*harmonic.length)];
+  }
+
+  /* BPM seul. */
+  let bpmOnly = modeCandidates.filter(track =>
+    bpmCompatible(current.original_bpm,track.original_bpm)
+  );
+
+  if(bpmOnly.length){
+    return bpmOnly[Math.floor(Math.random()*bpmOnly.length)];
+  }
+
+  /* N'importe quel titre admissible. */
+  if(modeCandidates.length){
+    return modeCandidates[Math.floor(Math.random()*modeCandidates.length)];
+  }
+
+  /* Catalogue d'un seul titre : boucle réelle sur le même titre. */
+  return TRACKS[Math.floor(Math.random()*TRACKS.length)];
+}
+
+async function prepareNext(deckName){
+  if(!auto){
+    return false;
+  }
+
+  const nextDeckName = nextName(deckName);
+  const current = decks[deckName];
+  const next = decks[nextDeckName];
+
+  if(!current.track){
+    return false;
+  }
+
+  /* Le deck suivant est déjà prêt ou en lecture : surtout ne pas l'écraser. */
+  if(next.chain === "queued" || next.chain === "playing"){
+    return true;
+  }
+
+  const candidate = chooseNextInfinite(current.track);
+
+  if(!candidate){
+    state(nextDeckName,"ATTENTE • CATALOGUE VIDE");
+    return false;
+  }
+
+  try{
+    await loadCandidateIntoDeck(nextDeckName,candidate,false);
+
+    if(!auto){
+      return false;
+    }
+
+    next.audio.pause();
+    next.audio.volume = 0;
+    next.chain = "queued";
+
+    state(
+      nextDeckName,
+      "PRÊT • SUIVANT AUTO • " + candidate.file
+    );
+
+    return true;
+  }catch(error){
+    console.error("[PREPARE " + nextDeckName + "]",error);
+    next.chain = "idle";
+    state(nextDeckName,"ERREUR • MP3 • RETRY AUTO");
+    return false;
+  }
+}
+
+/* ============================================================
+   CROSSFADE INFINI 30s
+   ============================================================ */
+
+async function crossfade(deckName){
+  if(!auto){
+    return;
+  }
+
+  const current = decks[deckName];
+
+  if(!current.loaded || current.transition || current.audio.paused){
+    return;
+  }
+
+  const nextDeckName = nextName(deckName);
+  const next = decks[nextDeckName];
+
+  current.transition = true;
+
+  /* Le morceau suivant doit être chargé AVANT le fondu. */
+  if(next.chain !== "queued"){
+    const prepared = await prepareNext(deckName);
+
+    if(!prepared){
+      current.transition = false;
+      return;
+    }
+  }
+
+  if(!auto || !next.loaded || !next.track){
+    current.transition = false;
+    return;
+  }
+
+  const remaining = current.endBeat - current.audio.currentTime;
+  const duration = Math.max(
+    0.1,
+    Math.min(TRANSITION_SECONDS,remaining)
+  );
+
+  setAudioTime(nextDeckName,next.startBeat);
+
+  next.audio.volume = 0;
+  next.chain = "playing";
+
+  try{
+    await next.audio.play();
+  }catch(error){
+    console.error("[CROSSFADE PLAY]",error);
+    next.chain = "queued";
+    current.transition = false;
+    return;
+  }
+
+  state(nextDeckName,"LECTURE • CROSSFADE 30s");
+
+  /* Pendant que B joue, on prépare déjà C.
+     Puis C prépare A, etc. : la chaîne devient réellement infinie. */
+  prepareNext(nextDeckName).catch(error => {
+    console.error("[PRELOAD SUCCESSOR]",error);
+  });
+
+  const started = performance.now();
+
+  function fade(now){
+    if(!auto){
+      current.audio.volume = 0;
+      next.audio.volume = 0;
+      current.audio.pause();
+      current.transition = false;
+      current.chain = "idle";
+      return;
+    }
+
+    const progress = Math.min(
+      1,
+      (now-started)/(duration*1000)
+    );
+
+    const angle = progress*Math.PI/2;
+
+    current.audio.volume = Math.cos(angle);
+    next.audio.volume = Math.sin(angle);
+
+    if(progress < 1){
+      requestAnimationFrame(fade);
+      return;
+    }
+
+    current.audio.volume = 0;
+    next.audio.volume = 1;
+    current.audio.pause();
+
+    current.chain = "idle";
+    current.transition = false;
+
+    /* Très important : on prépare immédiatement le prochain deck.
+       Cela donne : A→B, B→C, C→A, A→B, B→C... sans fin. */
+    prepareNext(nextDeckName).catch(error => {
+      console.error("[NEXT INFINITE]",error);
+    });
+  }
+
+  requestAnimationFrame(fade);
+}
+
+/* ============================================================
+   INDEX BEAT
+   ============================================================ */
+
+function updateBeatIndex(deckName){
+  const deck = decks[deckName];
+
+  if(!deck || !deck.beats.length){
+    return;
+  }
+
+  const time = deck.audio.currentTime;
+
+  let index = Math.max(
+    0,
+    Math.min(deck.beatIndex,deck.beats.length-1)
+  );
+
+  while(index < deck.beats.length-1 && deck.beats[index+1] <= time){
+    index++;
+  }
+
+  while(index > 0 && deck.beats[index] > time){
+    index--;
+  }
+
+  deck.beatIndex = index;
+}
+
+/* ============================================================
+   MONITOR
+   ============================================================ */
+
+function monitor(deckName){
+  const deck = decks[deckName];
+
+  if(!deck.loaded || !deck.track){
+    return;
+  }
+
+  if(deck.seeking || (drag && drag.deck === deckName)){
+    updateBeatIndex(deckName);
+    return;
+  }
+
+  updateBeatIndex(deckName);
+
+  if(deck.audio.currentTime >= deck.endBeat){
+    if(auto){
+      /* Normalement le crossfade a déjà démarré. Si le navigateur
+         nous amène exactement sur le dernier beat, on laisse l'AUTO
+         reprendre la chaîne au lieu d'arrêter définitivement le deck. */
+      if(deck.transition){
+        return;
+      }
+
+      if(!deck.audio.paused){
+        crossfade(deckName);
+        return;
+      }
+    }
+
+    deck.audio.pause();
+    state(deckName,"FIN • DERNIER BEAT");
+    return;
+  }
+
+  if(auto && !deck.transition && !deck.audio.paused){
+    const remaining = deck.endBeat - deck.audio.currentTime;
+
+    if(remaining <= TRANSITION_SECONDS && remaining > 0){
+      crossfade(deckName);
+    }
+  }
+}
+
+/* ============================================================
+   EVENTS AUDIO
+   ============================================================ */
+
+for(const deckName of ["A","B","C"]){
+  const audio = decks[deckName].audio;
+
+  audio.addEventListener("timeupdate",() => monitor(deckName));
+
+  audio.addEventListener("play",() => {
+    if(!decks[deckName].seeking){
+      state(deckName,"LECTURE");
+    }
+  });
+
+  audio.addEventListener("pause",() => {
+    if(
+      !audio.ended &&
+      decks[deckName].loaded &&
+      !decks[deckName].seeking
+    ){
+      state(deckName,"PAUSE");
+    }
+  });
+
+  audio.addEventListener("seeking",() => {
+    console.log(
+      "[AUDIO SEEKING " + deckName + "]",
+      audio.currentTime.toFixed(3),
+      "target:",
+      decks[deckName].seekTarget
+    );
+  });
+
+  audio.addEventListener("seeked",() => {
+    console.log(
+      "[AUDIO SEEKED " + deckName + "]",
+      audio.currentTime.toFixed(3),
+      "target:",
+      decks[deckName].seekTarget
+    );
+  });
+}
+
+/* ============================================================
+   AUTO PLAY
+   ============================================================ */
+
+async function startAuto(){
+  if(!TRACKS.length){
+    status("AUTO : catalogue vide");
+    return;
+  }
+
+  auto = true;
+
+  if(!decks.A.loaded){
+    const first = TRACKS[
+      Math.floor(Math.random()*TRACKS.length)
+    ];
+
+    await loadCandidateIntoDeck("A",first,false);
+  }
+
+  decks.A.chain = "playing";
+
+  if(decks.A.audio.paused){
+    if(
+      decks.A.audio.currentTime < decks.A.startBeat ||
+      decks.A.audio.currentTime >= decks.A.endBeat
+    ){
+      setAudioTime("A",decks.A.startBeat);
+    }
+
+    await decks.A.audio.play();
+  }
+
+  await prepareNext("A");
+
+  status("AUTO ON • BOUCLE INFINIE A → B → C → A → B → C → ... • crossfade 30s");
+}
+
+function stopAuto(){
+  auto = false;
+
+  for(const deckName of ["A","B","C"]){
+    decks[deckName].transition = false;
+    decks[deckName].chain = "idle";
+  }
+
+  status("AUTO OFF");
+}
+
+document.getElementById("autoPlay").addEventListener("click",async() => {
+  if(!auto){
+    await startAuto();
+  }else{
+    stopAuto();
+  }
+});
+
+/* ============================================================
+   SYNC
+   ============================================================ */
+
+function syncDeck(targetName,referenceName){
+  const target = decks[targetName];
+  const reference = decks[referenceName];
+
+  if(!target.loaded || !target.track){
+    state(targetName,"SYNC • DECK NON CHARGÉ");
+    return;
+  }
+
+  if(!reference.loaded || !reference.track){
+    state(targetName,"SYNC • " + referenceName + " NON CHARGÉ");
+    return;
+  }
+
+  if(!target.beats.length){
+    state(targetName,"SYNC • AUCUN BEAT");
+    return;
+  }
+
+  const referenceTime = reference.audio.currentTime;
+
+  let closestBeat = target.beats[0];
+  let closestDistance = Infinity;
+
+  for(const beat of target.beats){
+    if(beat < target.startBeat || beat > target.endBeat){
+      continue;
+    }
+
+    const distance = Math.abs(beat-referenceTime);
+
+    if(distance < closestDistance){
+      closestDistance = distance;
+      closestBeat = beat;
+    }
+  }
+
+  setAudioTime(targetName,closestBeat);
+  state(
+    targetName,
+    "SYNC • " + referenceName +
+    " • beat " + closestBeat.toFixed(3) + "s"
+  );
+}
+
+/* ============================================================
+   BOUTONS
+   ============================================================ */
+
+for(const deckName of ["A","B","C"]){
+  document.getElementById("play-" + deckName).addEventListener("click",async() => {
+    const deck = decks[deckName];
+
+    if(!deck.loaded){
+      return;
+    }
+
+    if(deck.audio.paused){
+      if(deck.audio.currentTime >= deck.endBeat){
+        setAudioTime(deckName,deck.startBeat);
+      }
+
+      try{
+        await deck.audio.play();
+      }catch(error){
+        console.error("[PLAY " + deckName + "]",error);
+      }
+    }else{
+      deck.audio.pause();
+    }
+  });
+
+  document.getElementById("next-" + deckName).addEventListener(
+    "click",
+    () => manualNext(deckName)
+  );
+
+  document.getElementById("sync-" + deckName).addEventListener("click",() => {
+    const reference =
+      deckName === "A" ? "C" :
+      deckName === "B" ? "A" : "B";
+
+    syncDeck(deckName,reference);
+  });
+}
+
+/* ============================================================
+   MODES
+   ============================================================ */
+
+document.querySelectorAll(".mode").forEach(button => {
+  button.addEventListener("click",() => {
+    document.querySelectorAll(".mode").forEach(other => {
+      other.classList.remove("active");
+    });
+
+    button.classList.add("active");
+    mode = button.dataset.mode;
+
+    const labels = {
+      cool:"COOL • original_bpm < 90",
+      normal:"NORMAL • 90 ≤ original_bpm < 105",
+      energy:"ENERGY • 105 ≤ original_bpm < 120",
+      super:"SUPER ENERGY • original_bpm ≥ 120"
+    };
+
+    status(labels[mode] + " • NEXT = BPM + KEY");
+  });
+});
+
+/* ============================================================
+   TIMELINE GEOMETRY
+   ============================================================ */
+
+function timelineGeometry(){
+  const rect = canvas.getBoundingClientRect();
+
+  const width = rect.width;
+  const height = rect.height;
+  const nowX = width * NOW_RATIO;
+  const totalSeconds = TIMELINE_PAST + TIMELINE_FUTURE;
+  const pixelsPerSecond = width / totalSeconds;
+
+  return {
+    width,
+    height,
+    nowX,
+    totalSeconds,
+    pixelsPerSecond
+  };
+}
+
+/* ============================================================
+   DRAW
+   ============================================================ */
+
+function draw(){
+  const geometry = timelineGeometry();
+
+  const width = geometry.width;
+  const height = geometry.height;
+  const nowX = geometry.nowX;
+  const px = geometry.pixelsPerSecond;
+
+  ctx.clearRect(0,0,width,height);
+
+  const names = ["A","B","C"];
+  const colors = {
+    A:"#58a6ff",
+    B:"#ff6b9d",
+    C:"#64ff9b"
+  };
+
+  const rowHeight = height / 3;
+
+  names.forEach((deckName,index) => {
+    const deck = decks[deckName];
+    const top = index * rowHeight;
+    const centerY = top + rowHeight/2;
+
+    ctx.strokeStyle = "rgba(255,255,255,.06)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0,top);
+    ctx.lineTo(width,top);
+    ctx.stroke();
+
+    ctx.fillStyle = colors[deckName];
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(deckName,12,top+24);
+
+    if(!deck.track){
+      ctx.fillStyle = "#526078";
+      ctx.font = "13px Arial";
+      ctx.fillText("Aucun morceau chargé",45,centerY);
+      return;
+    }
+
+    let lastX = -Infinity;
+
+    for(let i=0;i<deck.beats.length;i++){
+      const beat = deck.beats[i];
+      const delta = beat - deck.audio.currentTime;
+
+      if(delta > TIMELINE_FUTURE || delta < -TIMELINE_PAST){
+        continue;
+      }
+
+      const x = nowX + delta * px;
+
+      if(x < 0 || x > width){
+        continue;
+      }
+
+      if(x-lastX < 10){
+        continue;
+      }
+
+      lastX = x;
+
+      const major = i % 4 === 0;
+
+      ctx.strokeStyle = major
+        ? "rgba(190,205,225,.72)"
+        : "rgba(130,150,180,.40)";
+
+      ctx.lineWidth = major ? 2 : 1;
+
+      ctx.beginPath();
+      ctx.moveTo(
+        x,
+        centerY - (major ? 25 : 15)
+      );
+      ctx.lineTo(
+        x,
+        centerY + (major ? 25 : 15)
+      );
+      ctx.stroke();
+
+      ctx.fillStyle = colors[deckName];
+      ctx.beginPath();
+      ctx.arc(
+        x,
+        centerY,
+        major ? 3 : 2,
+        0,
+        Math.PI*2
+      );
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = colors[deckName];
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(nowX,centerY-32);
+    ctx.lineTo(nowX,centerY+32);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    if(drag && drag.deck === deckName){
+      const dragX =
+        nowX +
+        (deck.audio.currentTime - drag.startTime) * px;
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(dragX,centerY-35);
+      ctx.lineTo(dragX,centerY+35);
+      ctx.stroke();
+    }
+  });
+
+  /* Echelle */
+  const scaleY = height - 16;
+
+  ctx.font = "11px Arial";
+
+  for(
+    let seconds = -TIMELINE_PAST;
+    seconds <= TIMELINE_FUTURE;
+    seconds += 5
+  ){
+    const x = nowX + seconds * px;
+
+    if(x < 0 || x > width){
+      continue;
+    }
+
+    const isNow = seconds === 0;
+
+    ctx.strokeStyle = isNow
+      ? "#ff3038"
+      : "rgba(170,185,205,.28)";
+
+    ctx.lineWidth = isNow ? 2 : 1;
+
+    ctx.beginPath();
+    ctx.moveTo(x,scaleY-8);
+    ctx.lineTo(x,scaleY);
+    ctx.stroke();
+
+    const label = isNow
+      ? "NOW"
+      : seconds > 0
+        ? "+" + seconds + "s"
+        : seconds + "s";
+
+    ctx.fillStyle = isNow
+      ? "#ff3038"
+      : "rgba(175,188,205,.70)";
+
+    const tw = ctx.measureText(label).width;
+
+    ctx.fillText(label,x-tw/2,scaleY-11);
+  }
+
+  /* NOW global */
+  ctx.strokeStyle = "#ff3038";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(nowX,0);
+  ctx.lineTo(nowX,height);
+  ctx.stroke();
+
+  ctx.fillStyle = "#ff3038";
+  ctx.font = "bold 20px Arial";
+  ctx.fillText("NOW",nowX+7,24);
+}
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+
+let lastFrame = 0;
+
+function animation(timestamp){
+  if(timestamp-lastFrame >= 33){
+    lastFrame = timestamp;
+    draw();
+  }
+
+  requestAnimationFrame(animation);
+}
+
+requestAnimationFrame(animation);
+
+/* ============================================================
+   DRAG SEEK
+   ============================================================ */
+
+function deckAtCanvasY(y){
+  const rect = canvas.getBoundingClientRect();
+  const row = rect.height / 3;
+
+  if(y < row) return "A";
+  if(y < row*2) return "B";
+  return "C";
+}
+
+canvas.addEventListener("pointerdown",event => {
+  if(event.pointerType === "mouse" && event.button !== 0){
+    return;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const deckName = deckAtCanvasY(y);
+  const deck = decks[deckName];
+
+  if(!deck || !deck.loaded || !deck.track){
+    return;
+  }
+
+  const currentTime = Number(deck.audio.currentTime);
+
+  drag = {
+    deck: deckName,
+    pointerId: event.pointerId,
+    startX: x,
+    startTime: currentTime,
+    wasPlaying: !deck.audio.paused
+  };
+
+  deck.seeking = true;
+  deck.seekTarget = currentTime;
+
+  try{
+    canvas.setPointerCapture(event.pointerId);
+  }catch(error){
+    console.warn("[POINTER CAPTURE]",error);
+  }
+
+  canvas.classList.add("dragging");
+
+  state(
+    deckName,
+    "SEEK • " + currentTime.toFixed(2) + "s"
+  );
+
+  console.log("[DRAG START]",{
+    deck:deckName,
+    x,
+    currentTime
+  });
+
+  event.preventDefault();
+  event.stopPropagation();
+},{passive:false});
+
+canvas.addEventListener("pointermove",event => {
+  if(!drag || event.pointerId !== drag.pointerId){
+    return;
+  }
+
+  const deck = decks[drag.deck];
+
+  if(!deck || !deck.loaded || !deck.track){
+    return;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+
+  if(rect.width <= 0){
+    return;
+  }
+
+  const x = event.clientX - rect.left;
+  const deltaX = x - drag.startX;
+
+  const secondsPerPixel =
+    (TIMELINE_PAST + TIMELINE_FUTURE) / rect.width;
+
+  let newTime =
+    drag.startTime +
+    deltaX * secondsPerPixel;
+
+  newTime = clampAudioTime(deck,newTime);
+
+  deck.seeking = true;
+  deck.seekTarget = newTime;
+
+  try{
+    deck.audio.currentTime = newTime;
+  }catch(error){
+    console.error("[DRAG SEEK ERROR]",drag.deck,error);
+    return;
+  }
+
+  updateBeatIndex(drag.deck);
+
+  state(
+    drag.deck,
+    "SEEK • " + newTime.toFixed(2) + "s"
+  );
+
+  draw();
+
+  console.log(
+    "[DRAG MOVE]",
+    drag.deck,
+    "dx:",
+    deltaX.toFixed(2),
+    "newTime:",
+    newTime.toFixed(3)
+  );
+
+  event.preventDefault();
+  event.stopPropagation();
+},{passive:false});
+
+function finishDrag(event){
+  if(!drag){
+    return;
+  }
+
+  if(
+    event &&
+    event.pointerId !== undefined &&
+    event.pointerId !== drag.pointerId
+  ){
+    return;
+  }
+
+  const deckName = drag.deck;
+  const deck = decks[deckName];
+
+  if(!deck){
+    drag = null;
+    return;
+  }
+
+  const wasPlaying = drag.wasPlaying;
+  const finalTime = Number(deck.audio.currentTime);
+
+  deck.seeking = false;
+  deck.seekTarget = null;
+
+  updateBeatIndex(deckName);
+
+  if(wasPlaying){
+    deck.audio.play().catch(error => {
+      console.warn("[DRAG PLAY]",error);
+    });
+
+    state(
+      deckName,
+      "LECTURE • " + finalTime.toFixed(2) + "s"
+    );
+  }else{
+    state(
+      deckName,
+      "PAUSE • " + finalTime.toFixed(2) + "s"
+    );
+  }
+
+  console.log("[DRAG END]",{
+    deck:deckName,
+    finalTime
+  });
+
+  try{
+    if(
+      event &&
+      event.pointerId !== undefined &&
+      canvas.hasPointerCapture(event.pointerId)
+    ){
+      canvas.releasePointerCapture(event.pointerId);
+    }
+  }catch(error){
+    console.warn("[DRAG RELEASE]",error);
+  }
+
+  drag = null;
+  canvas.classList.remove("dragging");
+  draw();
+
+  if(event){
+    event.preventDefault();
+  }
+}
+
+canvas.addEventListener("pointerup",finishDrag,{passive:false});
+canvas.addEventListener("pointercancel",finishDrag,{passive:false});
+
+canvas.addEventListener("lostpointercapture",event => {
+  if(drag){
+    finishDrag(event);
+  }
+});
+
+canvas.addEventListener("dragstart",event => {
+  event.preventDefault();
+});
+
+canvas.addEventListener("pointerdown",event => {
+  console.log(
+    "[POINTER DOWN CANVAS]",
+    event.pointerType,
+    event.clientX,
+    event.clientY
+  );
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+
+async function init(){
+  try{
+    status("Chargement du catalogue...");
+
+    TRACKS = await loadCatalogue();
+
+    status(
+      TRACKS.length +
+      " morceaux disponibles • chargement de A..."
+    );
+
+    const first =
+      TRACKS[Math.floor(Math.random()*TRACKS.length)];
+
+    await loadCandidateIntoDeck("A",first,false);
+
+    status(
+      TRACKS.length +
+      " morceaux disponibles • A PRÊT"
+    );
+
+    console.log(
+      "Catalogue chargé :",
+      TRACKS.length,
+      "• _beat.json réellement chargés :",
+      beatCache.size
+    );
+  }catch(error){
+    console.error(error);
+    status("ERREUR : " + error.message);
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
