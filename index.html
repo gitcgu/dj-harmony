@@ -174,7 +174,9 @@ button.active{background:#2367d1;border-color:#5b9cff}
    ============================================================ */
 
 body.compact-mode{
-  padding:6px;
+  padding:4px;
+  height:100vh;
+  overflow:hidden;
 }
 
 body.compact-mode .help,
@@ -183,71 +185,87 @@ body.compact-mode #info{
 }
 
 body.compact-mode .top{
-  margin-bottom:6px;
-  gap:5px;
+  margin-bottom:4px;
+  gap:4px;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  white-space:nowrap;
 }
 
 body.compact-mode h1{
-  font-size:16px;
-  margin-right:8px;
+  font-size:14px;
+  margin-right:4px;
+  flex-shrink:0;
 }
 
 body.compact-mode .top button:not(#fullscreenBtn){
-  padding:5px 8px;
-  font-size:12px;
+  padding:4px 6px;
+  font-size:10px;
+  flex-shrink:0;
+}
+
+body.compact-mode #status{
+  display:none;
 }
 
 body.compact-mode .layout{
-  grid-template-columns:220px minmax(0,1fr);
-  height:calc(100vh - 60px);
-  gap:6px;
+  grid-template-columns:150px minmax(0,1fr);
+  height:calc(100vh - 40px);
+  gap:4px;
 }
 
 body.compact-mode .deck-list{
-  gap:5px;
+  gap:4px;
+  height:100%;
 }
 
 body.compact-mode .deck{
-  padding:6px 8px 6px 46px;
-  border-radius:9px;
+  padding:4px 6px 4px 34px;
+  border-radius:7px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
 
 body.compact-mode .deck-name{
-  left:10px;
-  top:6px;
-  font-size:18px;
+  left:6px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:15px;
 }
 
 body.compact-mode .title{
-  font-size:11px;
+  font-size:9px;
+  line-height:1.15;
   -webkit-line-clamp:2;
 }
 
 body.compact-mode .meta{
-  font-size:9px;
-  margin-top:2px;
+  font-size:7px;
+  margin-top:1px;
 }
 
 body.compact-mode .state{
-  font-size:9px;
-  margin-top:2px;
+  font-size:7px;
+  margin-top:1px;
 }
 
 body.compact-mode .controls{
   position:static;
-  margin-top:4px;
-  gap:4px;
+  margin-top:3px;
+  gap:3px;
 }
 
 body.compact-mode .controls button{
-  padding:4px 6px;
-  font-size:10px;
+  padding:2px 4px;
+  font-size:8px;
 }
 
 body.compact-mode #canvas{
   height:100%;
+  width:100%;
 }
-
+  
 @media(max-width:850px){
   body.compact-mode .layout{
     grid-template-columns:1fr 1fr;
@@ -1902,7 +1920,9 @@ async function enableCompactMode(){
     console.warn("[ORIENTATION LOCK]",error);
   }
 
-  resizeCanvas();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(resizeCanvas);
+  });
 }
 
 async function disableCompactMode(){
@@ -1927,9 +1947,11 @@ async function disableCompactMode(){
     console.warn("[ORIENTATION UNLOCK]",error);
   }
 
-  resizeCanvas();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(resizeCanvas);
+  });
 }
-
+  
 fullscreenBtn.addEventListener("click",async() => {
   if(!compactMode){
     await enableCompactMode();
