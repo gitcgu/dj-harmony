@@ -93,6 +93,8 @@ button.active{background:#2367d1;border-color:#5b9cff}
   -webkit-line-clamp:3;
   -webkit-box-orient:vertical;
   overflow:hidden;
+  word-break:break-word;
+  max-height:calc(1.3em * 3);
 }
 
 .meta{
@@ -340,6 +342,19 @@ function mp3Url(track){
   return MP3_DIR + encodeURIComponent(String(track.file).trim());
 }
 
+function cleanTitle(filename){
+  return String(filename || "")
+    .replace(/\.mp3$/i,"")
+    .trim();
+}
+
+function truncateTitle(text,maxLength){
+  if(text.length <= maxLength){
+    return text;
+  }
+  return text.slice(0,maxLength - 1).trim() + "…";
+}
+
 /* ============================================================
    CATALOGUE
    ============================================================ */
@@ -455,7 +470,10 @@ function showTrack(deckName,track){
   const title = document.getElementById("title-" + deckName);
   const meta = document.getElementById("meta-" + deckName);
 
-  title.textContent = track.file;
+  /* title.textContent = track.file; */
+  const cleaned = cleanTitle(track.file);
+  title.textContent = truncateTitle(cleaned,60);
+  title.title = cleaned; // tooltip au survol pour voir le titre complet
 
   const bpm = Number(track.original_bpm);
 
