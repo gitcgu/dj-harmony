@@ -140,6 +140,121 @@ button.active{background:#2367d1;border-color:#5b9cff}
   line-height:1.55;
 }
 
+#fullscreenBtn{
+  width:42px;
+  height:42px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  border-radius:10px;
+  background:linear-gradient(180deg,#1c2536,#121a29);
+  border:1px solid #3a4a68;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  transition:transform .15s ease, background .15s ease;
+}
+
+#fullscreenBtn:hover{
+  background:linear-gradient(180deg,#243046,#161f31);
+  transform:translateY(-1px);
+}
+
+#fullscreenBtn:active{
+  transform:translateY(0);
+}
+
+#fullscreenBtn.active{
+  border-color:#5b9cff;
+  background:linear-gradient(180deg,#1d3a63,#12233d);
+}
+
+/* ============================================================
+   MODE COMPACT (activé par le bouton, sur PC ou mobile)
+   ============================================================ */
+
+body.compact-mode{
+  padding:6px;
+}
+
+body.compact-mode .help,
+body.compact-mode #info{
+  display:none;
+}
+
+body.compact-mode .top{
+  margin-bottom:6px;
+  gap:5px;
+}
+
+body.compact-mode h1{
+  font-size:16px;
+  margin-right:8px;
+}
+
+body.compact-mode .top button:not(#fullscreenBtn){
+  padding:5px 8px;
+  font-size:12px;
+}
+
+body.compact-mode .layout{
+  grid-template-columns:220px minmax(0,1fr);
+  height:calc(100vh - 60px);
+  gap:6px;
+}
+
+body.compact-mode .deck-list{
+  gap:5px;
+}
+
+body.compact-mode .deck{
+  padding:6px 8px 6px 46px;
+  border-radius:9px;
+}
+
+body.compact-mode .deck-name{
+  left:10px;
+  top:6px;
+  font-size:18px;
+}
+
+body.compact-mode .title{
+  font-size:11px;
+  -webkit-line-clamp:2;
+}
+
+body.compact-mode .meta{
+  font-size:9px;
+  margin-top:2px;
+}
+
+body.compact-mode .state{
+  font-size:9px;
+  margin-top:2px;
+}
+
+body.compact-mode .controls{
+  position:static;
+  margin-top:4px;
+  gap:4px;
+}
+
+body.compact-mode .controls button{
+  padding:4px 6px;
+  font-size:10px;
+}
+
+body.compact-mode #canvas{
+  height:100%;
+}
+
+@media(max-width:850px){
+  body.compact-mode .layout{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+  
 @media(max-width:850px){
   .layout{grid-template-columns:1fr;height:auto}
   .deck-list{height:500px}
@@ -150,6 +265,10 @@ button.active{background:#2367d1;border-color:#5b9cff}
 <body>
 
 <div class="top">
+  <button id="fullscreenBtn" title="mode compact / mobile">
+    <span id="fullscreenIcon">⛶</span>
+ </button>
+
   <h1>🎧 DJ Harmonic</h1>
 
   <button class="mode" data-mode="cool">COOL</button>
@@ -1750,6 +1869,79 @@ canvas.addEventListener("pointerdown",event => {
     event.clientX,
     event.clientY
   );
+});
+
+/* ============================================================
+   TOGGLE MODE COMPACT / MOBILE
+   ============================================================ */
+
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+const fullscreenIcon = document.getElementById("fullscreenIcon");
+
+let compactMode = false;
+
+async function enableCompactMode(){
+  compactMode = true;
+  document.body.classList.add("compact-mode");
+  fullscreenBtn.classList.add("active");
+  fullscreenIcon.textContent = "🖥";
+
+  try{
+    if(document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen();
+    }
+  }catch(error){
+    console.warn("[FULLSCREEN REQUEST]",error);
+  }
+
+  try{
+    if(screen.orientation && screen.orientation.lock){
+      await screen.orientation.lock("landscape");
+    }
+  }catch(error){
+    console.warn("[ORIENTATION LOCK]",error);
+  }
+
+  resizeCanvas();
+}
+
+async function disableCompactMode(){
+  compactMode = false;
+  document.body.classList.remove("compact-mode");
+  fullscreenBtn.classList.remove("active");
+  fullscreenIcon.textContent = "⛶";
+
+  try{
+    if(document.fullscreenElement && document.exitFullscreen){
+      await document.exitFullscreen();
+    }
+  }catch(error){
+    console.warn("[FULLSCREEN EXIT]",error);
+  }
+
+  try{
+    if(screen.orientation && screen.orientation.unlock){
+      screen.orientation.unlock();
+    }
+  }catch(error){
+    console.warn("[ORIENTATION UNLOCK]",error);
+  }
+
+  resizeCanvas();
+}
+
+fullscreenBtn.addEventListener("click",async() => {
+  if(!compactMode){
+    await enableCompactMode();
+  }else{
+    await disableCompactMode();
+  }
+});
+
+document.addEventListener("fullscreenchange",() => {
+  if(!document.fullscreenElement && compactMode){
+    disableCompactMode();
+  }
 });
 
 /* ============================================================
