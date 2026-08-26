@@ -313,6 +313,25 @@ function state(deckName,text){
   document.getElementById("state-" + deckName).textContent = text;
 }
 
+
+function formatRemaining(deck){
+  if(!deck || !deck.track){
+    return "--:--";
+  }
+
+  const remaining = Math.max(
+    0,
+    (Number(deck.endBeat) || 0) - Number(deck.audio.currentTime)
+  );
+
+  const totalSeconds = Math.floor(remaining);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return String(minutes).padStart(2,"0") + ":" + String(seconds).padStart(2,"0");
+}
+
+  
 /* ============================================================
    URLS
    ============================================================ */
@@ -583,7 +602,8 @@ async function loadDeck(deckName,track,play=false){
     deck.startBeat.toFixed(3) +
     "s → " +
     deck.endBeat.toFixed(3) +
-    "s"
+    "s" +
+     " • fin dans " + formatRemaining(deck)
   );
 
   if(play){
@@ -901,7 +921,9 @@ async function crossfade(deckName){
     return;
   }
 
-  state(nextDeckName,"LECTURE • CROSSFADE 30s");
+/*  state(nextDeckName,"LECTURE • CROSSFADE 30s"); */
+  state(nextDeckName,"LECTURE • CROSSFADE 30s • fin dans " + formatRemaining(next));
+
 
   /* Pendant que B joue, on prépare déjà C.
      Puis C prépare A, etc. : la chaîne devient réellement infinie. */
@@ -1000,6 +1022,13 @@ function monitor(deckName){
 
   updateBeatIndex(deckName);
 
+  if(auto && !deck.transition && !deck.audio.paused){
+    const currentSecond = Math.floor(deck.audio.currentTime);
+    if(deck._lastDisplayedSecond !== currentSecond){
+      deck._lastDisplayedSecond = currentSecond;
+      state(deckName,"LECTURE • fin dans " + formatRemaining(deck));
+    }
+  }
   if(deck.audio.currentTime >= deck.endBeat){
     if(auto){
       /* Normalement le crossfade a déjà démarré. Si le navigateur
@@ -1176,7 +1205,8 @@ for(const beat of target.beats){
   state(
     targetName,
     "SYNC • " + referenceName +
-    " • beat " + closestBeat.toFixed(3) + "s"
+    " • beat " + closestBeat.toFixed(3) + "s" +
+    " • fin dans " + formatRemaining(target)
   );
 }
 
@@ -1571,7 +1601,8 @@ canvas.addEventListener("pointermove",event => {
 
   state(
     drag.deck,
-    "SEEK • " + newTime.toFixed(2) + "s"
+    "SEEK • " + newTime.toFixed(2) + "s" +
+    " • fin dans " + formatRemaining(deck)
   );
 
   draw();
@@ -1625,12 +1656,14 @@ function finishDrag(event){
 
     state(
       deckName,
-      "LECTURE • " + finalTime.toFixed(2) + "s"
+      "LECTURE • " + finalTime.toFixed(2) + "s" +
+      " • fin dans " + formatRemaining(deck)
     );
   }else{
     state(
       deckName,
-      "PAUSE • " + finalTime.toFixed(2) + "s"
+      "PAUSE • " + finalTime.toFixed(2) + "s" +
+      " • fin dans " + formatRemaining(deck)
     );
   }
 
