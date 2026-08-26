@@ -951,30 +951,31 @@ async function crossfade(deckName){
 
   const started = performance.now();
 
-  function fade(now){
-    if(!auto){
-      current.audio.volume = 0;
-      next.audio.volume = 0;
-      current.audio.pause();
-      current.transition = false;
-      current.chain = "idle";
-      return;
-    }
+function fade(){
+  const now = performance.now();
 
-    const progress = Math.min(
-      1,
-      (now-started)/(duration*1000)
-    );
+  if(!auto){
+    current.audio.volume = 0;
+    next.audio.volume = 0;
+    current.audio.pause();
+    current.transition = false;
+    current.chain = "idle";
+    clearInterval(current._fadeInterval);
+    return;
+  }
 
-    const angle = progress*Math.PI/2;
+  const progress = Math.min(
+    1,
+    (now-started)/(duration*1000)
+  );
 
-    current.audio.volume = Math.cos(angle);
-    next.audio.volume = Math.sin(angle);
+  const angle = progress*Math.PI/2;
 
-    if(progress < 1){
-      requestAnimationFrame(fade);
-      return;
-    }
+  current.audio.volume = Math.cos(angle);
+  next.audio.volume = Math.sin(angle);
+
+  if(progress >= 1){
+    clearInterval(current._fadeInterval);
 
     current.audio.volume = 0;
     next.audio.volume = 1;
@@ -983,17 +984,16 @@ async function crossfade(deckName){
     current.chain = "idle";
     current.transition = false;
 
-    /* Très important : on prépare immédiatement le prochain deck.
-       Cela donne : A→B, B→C, C→A, A→B, B→C... sans fin. */
     prepareNext(nextDeckName).catch(error => {
       console.error("[NEXT INFINITE]",error);
     });
   }
-
-  requestAnimationFrame(fade);
 }
 
-/* ============================================================
+clearInterval(current._fadeInterval);
+current._fadeInterval = setInterval(fade,50);
+  
+  /* ============================================================
    INDEX BEAT
    ============================================================ */
 
