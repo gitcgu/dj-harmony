@@ -1550,7 +1550,8 @@ canvas.addEventListener("pointermove",event => {
     (TIMELINE_PAST + TIMELINE_FUTURE) / rect.width;
 
   let newTime =
-    drag.startTime +
+ /*   drag.startTime + */
+    drag.startTime -
     deltaX * secondsPerPixel;
 
   newTime = clampAudioTime(deck,newTime);
