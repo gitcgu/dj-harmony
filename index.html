@@ -605,7 +605,31 @@ async function hydrateTrack(track){
 /* ============================================================
    AFFICHAGE
    ============================================================ */
+/* ============================================================
+   MEDIA SESSION — infos lecture sur écran verrouillé Android
+   ============================================================ */
 
+function updateMediaSession(track){
+  if(!("mediaSession" in navigator) || !track){
+    return;
+  }
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: cleanTitle(track.file),
+    artist: "DJ Harmonic",
+    album: "Mix Auto"
+  });
+
+  navigator.mediaSession.setActionHandler("play",() => {
+    if(auto) return;
+    document.getElementById("play-A").click();
+  });
+
+  navigator.mediaSession.setActionHandler("pause",() => {
+    document.getElementById("play-A").click();
+  });
+}
+  
 function showTrack(deckName,track){
   const title = document.getElementById("title-" + deckName);
   const meta = document.getElementById("meta-" + deckName);
@@ -614,6 +638,8 @@ function showTrack(deckName,track){
   const cleaned = cleanTitle(track.file);
   title.textContent = truncateTitle(cleaned,60);
   title.title = cleaned; // tooltip au survol pour voir le titre complet
+
+  updateMediaSession(track);   // 👈 AJOUT
 
   const bpm = Number(track.original_bpm);
 
@@ -1291,6 +1317,8 @@ async function startAuto(){
 
   auto = true;
 
+  await requestWakeLock();   // 👈 AJOUT
+
   if(!decks.A.loaded){
     const first = TRACKS[
       Math.floor(Math.random()*TRACKS.length)
@@ -1319,6 +1347,8 @@ async function startAuto(){
 
 function stopAuto(){
   auto = false;
+
+  releaseWakeLock();   // 👈 AJOUT
 
   for(const deckName of ["A","B","C"]){
     decks[deckName].transition = false;
@@ -2010,6 +2040,50 @@ fullscreenBtn.addEventListener("click",async() => {
 document.addEventListener("fullscreenchange",() => {
   if(!document.fullscreenElement && compactMode){
     disableCompactMode();
+  }
+});
+
+/* ============================================================
+   WAKE LOCK — empêche le verrouillage d'écran pendant la lecture
+   ============================================================ */
+
+let wakeLock = null;
+
+async function requestWakeLock(){
+  try{
+    if("wakeLock" in navigator){
+      wakeLock = await navigator.wakeLock.request("screen");
+
+      wakeLock.addEventListener("release",() => {
+        console.log("[WAKE LOCK] Relâché");
+      });
+
+      console.log("[WAKE LOCK] Actif");
+    }else{
+      console.warn("[WAKE LOCK] Non supporté par ce navigateur");
+    }
+  }catch(error){
+    console.warn("[WAKE LOCK ERROR]",error);
+  }
+}
+
+async function releaseWakeLock(){
+  try{
+    if(wakeLock){
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  }catch(error){
+    console.warn("[WAKE LOCK RELEASE ERROR]",error);
+  }
+}
+
+/* Ré-acquérir le wake lock si l'utilisateur revient sur l'app
+   (le wake lock est automatiquement relâché par le navigateur
+   dès que l'onglet passe en arrière-plan). */
+document.addEventListener("visibilitychange",async() => {
+  if(document.visibilityState === "visible" && auto){
+    await requestWakeLock();
   }
 });
 
