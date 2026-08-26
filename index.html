@@ -1561,12 +1561,17 @@ function draw(){
      return;
     }
 
+   const displayTime =
+      (drag && drag.deck === deckName && Number.isFinite(drag.pendingTime))
+        ? drag.pendingTime
+        : deck.audio.currentTime;
+
     let lastX = -Infinity;
 
     for(let i=0;i<deck.beats.length;i++){
       const beat = deck.beats[i];
-      const delta = beat - deck.audio.currentTime;
-
+      const delta = beat - displayTime;
+      
       if(delta > TIMELINE_FUTURE || delta < -TIMELINE_PAST){
         continue;
       }
@@ -1626,7 +1631,7 @@ function draw(){
     if(drag && drag.deck === deckName){
       const dragX =
         nowX +
-        (deck.audio.currentTime - drag.startTime) * px;
+        (displayTime - drag.startTime) * px;
 
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2;
@@ -1799,23 +1804,31 @@ canvas.addEventListener("pointermove",event => {
     (TIMELINE_PAST + TIMELINE_FUTURE) / rect.width;
 
   let newTime =
- /*   drag.startTime + */
     drag.startTime -
     deltaX * secondsPerPixel;
 
   newTime = clampAudioTime(deck,newTime);
 
-  deck.seeking = true;
-  deck.seekTarget = newTime;
+  drag.pendingTime = newTime;
 
-  try{
-    deck.audio.currentTime = newTime;
-  }catch(error){
-    console.error("[DRAG SEEK ERROR]",drag.deck,error);
-    return;
+  const now = performance.now();
+  const SEEK_THROTTLE_MS = 80;
+
+  if(!drag.lastSeekAt || now - drag.lastSeekAt >= SEEK_THROTTLE_MS){
+    drag.lastSeekAt = now;
+
+    deck.seeking = true;
+    deck.seekTarget = newTime;
+
+    try{
+      deck.audio.currentTime = newTime;
+    }catch(error){
+      console.error("[DRAG SEEK ERROR]",drag.deck,error);
+      return;
+    }
+
+    updateBeatIndex(drag.deck);
   }
-
-  updateBeatIndex(drag.deck);
 
   state(
     drag.deck,
@@ -1823,19 +1836,10 @@ canvas.addEventListener("pointermove",event => {
     " • fin dans " + formatRemaining(deck)
   );
 
-  console.log(
-    "[DRAG MOVE]",
-    drag.deck,
-    "dx:",
-    deltaX.toFixed(2),
-    "newTime:",
-    newTime.toFixed(3)
-  );
-
   event.preventDefault();
   event.stopPropagation();
 },{passive:false});
-
+  
 function finishDrag(event){
   if(!drag){
     return;
@@ -1858,7 +1862,15 @@ function finishDrag(event){
   }
 
   const wasPlaying = drag.wasPlaying;
-  const finalTime = Number(deck.audio.currentTime);
+  const finalTime = Number.isFinite(drag.pendingTime)
+    ? drag.pendingTime
+    : Number(deck.audio.currentTime);
+
+  try{
+    deck.audio.currentTime = finalTime;
+  }catch(error){
+    console.warn("[DRAG FINAL SEEK]",error);
+  }
 
   deck.seeking = false;
   deck.seekTarget = null;
