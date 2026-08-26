@@ -1550,11 +1550,15 @@ function draw(){
     ctx.font = "bold 18px Arial";
     ctx.fillText(deckName,12,top+24);
 
-    if(!deck.track){
+    if(!deck.track || !deck.loaded){
       ctx.fillStyle = "#526078";
       ctx.font = "13px Arial";
-      ctx.fillText("Aucun morceau chargé",45,centerY);
-      return;
+      ctx.fillText(
+      deck.track ? "Chargement..." : "Aucun morceau chargé",
+      45,
+      centerY
+     );
+     return;
     }
 
     let lastX = -Infinity;
