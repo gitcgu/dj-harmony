@@ -174,69 +174,71 @@ button.active{background:#2367d1;border-color:#5b9cff}
    ============================================================ */
 
 body.compact-mode{
+  margin:0;
   padding:4px;
   height:100vh;
-  height:100dvh;  /* 👈 ajoute cette ligne juste après, en fallback progressif */
+  height:100dvh;
   overflow:hidden;
 }
 
 body.compact-mode .help,
-body.compact-mode #info{
+body.compact-mode #info,
+body.compact-mode #status{
   display:none;
 }
 
 body.compact-mode .top{
-  margin-bottom:4px;
+  display:flex;
+  align-items:center;
   gap:4px;
+  margin-bottom:4px;
   flex-wrap:nowrap;
   overflow-x:auto;
-  white-space:nowrap;
 }
 
 body.compact-mode h1{
-  font-size:14px;
-  margin-right:4px;
+  font-size:13px;
+  margin:0 4px 0 0;
   flex-shrink:0;
+  white-space:nowrap;
 }
 
 body.compact-mode .top button:not(#fullscreenBtn){
   padding:4px 6px;
   font-size:10px;
   flex-shrink:0;
-}
-
-body.compact-mode #status{
-  display:none;
+  white-space:nowrap;
 }
 
 body.compact-mode .layout{
-  grid-template-columns:150px minmax(0,1fr);
-  height:calc(100vh - 40px);
-  height:calc(100dvh - 40px);  /* 👈 ajoute cette ligne */
+  display:flex;
+  flex-direction:row;
   gap:4px;
-  min-height:0;        /* 👈 AJOUT CRITIQUE */
+  width:100%;
 }
 
 body.compact-mode .deck-list{
+  display:flex;
+  flex-direction:column;
   gap:4px;
-  height:100%;
-  min-height:0;        /* 👈 AJOUT CRITIQUE */
-  display:grid;
-  grid-template-rows:repeat(3,1fr);
+  width:150px;
+  flex:0 0 150px;
 }
 
 body.compact-mode .deck{
-  padding:4px 6px 4px 34px;
+  flex:1 1 0;
+  min-height:0;
+  padding:4px 6px 4px 32px;
   border-radius:7px;
   overflow:hidden;
-  min-height:0;         /* 👈 AJOUT CRITIQUE */
+  position:relative;
 }
 
 body.compact-mode .deck-name{
   left:6px;
   top:50%;
   transform:translateY(-50%);
-  font-size:15px;
+  font-size:14px;
 }
 
 body.compact-mode .title{
@@ -258,6 +260,7 @@ body.compact-mode .state{
 body.compact-mode .controls{
   position:static;
   margin-top:3px;
+  display:flex;
   gap:3px;
 }
 
@@ -267,16 +270,11 @@ body.compact-mode .controls button{
 }
 
 body.compact-mode #canvas{
-  height:100%;
-  width:100%;
+  flex:1 1 auto;
+  min-width:0;
+  width:auto;
+  height:auto;
 }
-  
-@media(max-width:850px){
-  body.compact-mode .layout{
-    grid-template-columns:1fr 1fr;
-  }
-}
-
   
 @media(max-width:850px){
   .layout{grid-template-columns:1fr;height:auto}
@@ -1903,6 +1901,28 @@ const fullscreenIcon = document.getElementById("fullscreenIcon");
 
 let compactMode = false;
 
+function applyCompactSizing(){
+  if(!compactMode){
+    return;
+  }
+
+  const top = document.querySelector(".top");
+  const layout = document.querySelector(".layout");
+
+  if(!top || !layout){
+    return;
+  }
+
+  const topHeight = top.getBoundingClientRect().height;
+  const viewportHeight = window.innerHeight;
+  const availableHeight = viewportHeight - topHeight - 12;
+
+  layout.style.height = Math.max(200,availableHeight) + "px";
+
+  resizeCanvas();
+  draw();
+}
+
 async function enableCompactMode(){
   compactMode = true;
   document.body.classList.add("compact-mode");
@@ -1934,6 +1954,11 @@ async function disableCompactMode(){
   fullscreenBtn.classList.remove("active");
   fullscreenIcon.textContent = "⛶";
 
+  const layout = document.querySelector(".layout");
+  if(layout){
+    layout.style.height = "";
+  }
+
   try{
     if(document.fullscreenElement && document.exitFullscreen){
       await document.exitFullscreen();
@@ -1950,27 +1975,29 @@ async function disableCompactMode(){
     console.warn("[ORIENTATION UNLOCK]",error);
   }
 
-  scheduleCanvasResize();
+  resizeCanvas();
+  draw();
 }
 
 function scheduleCanvasResize(){
   requestAnimationFrame(() => {
-    requestAnimationFrame(resizeCanvas);
+    requestAnimationFrame(applyCompactSizing);
   });
 
-  window.setTimeout(resizeCanvas,150);
-  window.setTimeout(resizeCanvas,400);
-  window.setTimeout(resizeCanvas,800);
+  window.setTimeout(applyCompactSizing,150);
+  window.setTimeout(applyCompactSizing,400);
+  window.setTimeout(applyCompactSizing,800);
+  window.setTimeout(applyCompactSizing,1500);
 }
 
-window.addEventListener("orientationchange",() => {
-  scheduleCanvasResize();
+window.addEventListener("orientationchange",scheduleCanvasResize);
+window.addEventListener("resize",() => {
+  if(compactMode){
+    applyCompactSizing();
+  }
 });
 
-document.addEventListener("fullscreenchange",() => {
-  scheduleCanvasResize();
-});
-
+document.addEventListener("fullscreenchange",scheduleCanvasResize);
   
 fullscreenBtn.addEventListener("click",async() => {
   if(!compactMode){
