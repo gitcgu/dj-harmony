@@ -703,7 +703,7 @@ function setAudioTime(deckName,requestedTime){
   }
 
   updateBeatIndex(deckName);
-  draw();
+ /* draw(); */
 
   window.clearTimeout(deck._seekTimer);
 
@@ -711,7 +711,7 @@ function setAudioTime(deckName,requestedTime){
     deck.seeking = false;
     deck.seekTarget = null;
     updateBeatIndex(deckName);
-    draw();
+    / *draw(); */ 
   },120);
 
   return true;
@@ -1823,8 +1823,6 @@ canvas.addEventListener("pointermove",event => {
     " • fin dans " + formatRemaining(deck)
   );
 
-  draw();
-
   console.log(
     "[DRAG MOVE]",
     drag.deck,
@@ -1904,7 +1902,7 @@ function finishDrag(event){
 
   drag = null;
   canvas.classList.remove("dragging");
-  draw();
+  /* draw(); */ 
 
   if(event){
     event.preventDefault();
