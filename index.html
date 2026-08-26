@@ -1569,9 +1569,25 @@ function draw(){
     let lastX = -Infinity;
 
     for(let i=0;i<deck.beats.length;i++){
+/* Calcul d'un pas fixe (stride) indépendant de displayTime,
+       pour éviter que le filtre anti-collision change de résultat
+       d'une frame à l'autre pendant le scroll (= clignotement). */
+    let avgBeatGap = 0.5;
+
+    if(deck.beats.length > 1){
+      avgBeatGap =
+        (deck.beats[deck.beats.length-1] - deck.beats[0]) /
+        (deck.beats.length - 1);
+    }
+
+    const minPixelGap = 10;
+    const rawStride = minPixelGap / Math.max(0.001, avgBeatGap * px);
+    const stride = Math.max(1, Math.round(rawStride));
+
+    for(let i=0; i<deck.beats.length; i += stride){
       const beat = deck.beats[i];
       const delta = beat - displayTime;
-      
+
       if(delta > TIMELINE_FUTURE || delta < -TIMELINE_PAST){
         continue;
       }
@@ -1582,13 +1598,7 @@ function draw(){
         continue;
       }
 
-      if(x-lastX < 10){
-        continue;
-      }
-
-      lastX = x;
-
-      const major = i % 4 === 0;
+      const major = i % (stride*4) === 0;
 
       ctx.strokeStyle = major
         ? "rgba(190,205,225,.72)"
@@ -1597,26 +1607,15 @@ function draw(){
       ctx.lineWidth = major ? 2 : 1;
 
       ctx.beginPath();
-      ctx.moveTo(
-        x,
-        centerY - (major ? 25 : 15)
-      );
-      ctx.lineTo(
-        x,
-        centerY + (major ? 25 : 15)
-      );
+      ctx.moveTo(x, centerY - (major ? 25 : 15));
+      ctx.lineTo(x, centerY + (major ? 25 : 15));
       ctx.stroke();
 
       ctx.fillStyle = colors[deckName];
       ctx.beginPath();
-      ctx.arc(
-        x,
-        centerY,
-        major ? 3 : 2,
-        0,
-        Math.PI*2
-      );
+      ctx.arc(x, centerY, major ? 3 : 2, 0, Math.PI*2);
       ctx.fill();
+    }
     }
 
     ctx.strokeStyle = colors[deckName];
