@@ -1153,24 +1153,25 @@ function syncDeck(targetName,referenceName){
     return;
   }
 
-  const referenceTime = reference.audio.currentTime;
+/* fix sync */
+const targetTime = target.audio.currentTime;
 
-  let closestBeat = target.beats[0];
-  let closestDistance = Infinity;
+let closestBeat = target.beats[0];
+let closestDistance = Infinity;
 
-  for(const beat of target.beats){
-    if(beat < target.startBeat || beat > target.endBeat){
-      continue;
-    }
-
-    const distance = Math.abs(beat-referenceTime);
-
-    if(distance < closestDistance){
-      closestDistance = distance;
-      closestBeat = beat;
-    }
+for(const beat of target.beats){
+  if(beat < target.startBeat || beat > target.endBeat){
+    continue;
   }
 
+  const distance = Math.abs(beat-targetTime);
+
+  if(distance < closestDistance){
+    closestDistance = distance;
+    closestBeat = beat;
+  }
+}
+  
   setAudioTime(targetName,closestBeat);
   state(
     targetName,
