@@ -1120,6 +1120,24 @@ for(const deckName of ["A","B","C"]){
   });
 }
 
+document.addEventListener("visibilitychange",() => {
+  if(document.visibilityState === "visible"){
+    for(const deckName of ["A","B","C"]){
+      const deck = decks[deckName];
+
+      if(
+        deck.chain === "playing" &&
+        !deck.audio.paused &&
+        deck.audio.volume < 0.05 &&
+        !deck.transition
+      ){
+        console.warn("[RECOVERY]",deckName,"volume anormalement bas, correction");
+        deck.audio.volume = 1;
+      }
+    }
+  }
+});
+  
 /* ============================================================
    AUTO PLAY
    ============================================================ */
