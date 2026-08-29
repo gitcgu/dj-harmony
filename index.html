@@ -277,7 +277,7 @@ body.compact-mode .deck-name{
 
 body.compact-mode .title{
   font-size:11px;
-  line-height:1.15;
+  line-height:1.1;
   -webkit-line-clamp:2;
 }
 
@@ -306,11 +306,12 @@ body.compact-mode .controls-row{
 }
 
 body.compact-mode .controls button{
-  padding:7px 4px;
-  font-size:11px;
-  min-height:30px;
+  padding:6px 2px;
+  font-size:10px;
+  min-height:26px;
+  white-space:nowrap;
+  overflow:hidden;
 }
-
 body.compact-mode #canvas{
   flex:1 1 auto;
   min-width:0;
@@ -325,6 +326,13 @@ body.compact-mode .controls-row button{
   border-radius:6px;
 }
 
+body.compact-mode #play-A,
+body.compact-mode #play-B,
+body.compact-mode #play-C{
+  font-size:9px;
+  letter-spacing:-0.5px;
+}
+  
 @media(max-width:850px){
   .layout{grid-template-columns:1fr;height:auto}
   .deck-list{height:500px}
