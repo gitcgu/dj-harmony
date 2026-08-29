@@ -2187,6 +2187,15 @@ canvas.addEventListener("pointerdown",event => {
   const deckName = deckAtCanvasY(y);
   const deck = decks[deckName];
 
+
+    /* Zone EQ (sliders graves/médiums/aigus) : on bloque le seek ici,
+     l'interaction EQ sera ajoutée à l'étape suivante. */
+  if(x >= 0 && x <= 90){
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  
   if(!deck || !deck.loaded || !deck.track){
     return;
   }
