@@ -2067,7 +2067,7 @@ if(deck.waveformCanvas && deck.waveformSecondsPerPixel > 0){
         ctx.globalAlpha = 1;
       }
     }
-/ * fin new*/ 
+/ * fin new */ 
     let lastX = -Infinity;
 
     for(let i=0;i<deck.beats.length;i++){
@@ -2347,6 +2347,22 @@ canvas.addEventListener("pointermove",event => {
   }
   
 canvas.addEventListener("pointermove",event => {
+  if(eqDrag && event.pointerId === eqDrag.pointerId){
+    const rect = canvas.getBoundingClientRect();
+    const y = event.clientY - rect.top;
+
+    const r = eqDrag.rect;
+    const clampedY = Math.max(r.y, Math.min(r.y+r.height, y));
+    const ratio = 1 - ((clampedY - r.y) / r.height);
+    const value = Math.round(ratio*30 - 15);
+
+    applyEqValue(eqDrag.deckName, eqDrag.band, value);
+
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+
   if(!drag || event.pointerId !== drag.pointerId){
     return;
   }
@@ -2404,7 +2420,7 @@ canvas.addEventListener("pointermove",event => {
 
   event.preventDefault();
   event.stopPropagation();
-},{passive:false});
+},{passive:false});  
 
 function finishDrag(event){
   if(eqDrag && (!event || event.pointerId === eqDrag.pointerId)){
@@ -2417,11 +2433,6 @@ function finishDrag(event){
     return;
   }
 
-  if(!drag){
-    return;
-  }
-  
-function finishDrag(event){
   if(!drag){
     return;
   }
@@ -2495,13 +2506,12 @@ function finishDrag(event){
 
   drag = null;
   canvas.classList.remove("dragging");
-  /* draw(); */ 
 
   if(event){
     event.preventDefault();
   }
 }
-
+/* news */ 
 canvas.addEventListener("pointerup",finishDrag,{passive:false});
 canvas.addEventListener("pointercancel",finishDrag,{passive:false});
 
