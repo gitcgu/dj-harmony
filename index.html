@@ -625,7 +625,9 @@ async function loadWaveform(deckName, track){
   const cacheKey = track.file;
 
   if(waveformCache.has(cacheKey)){
-    decks[deckName].waveformCanvas = waveformCache.get(cacheKey);
+    const cached = waveformCache.get(cacheKey);
+    decks[deckName].waveformCanvas = cached ? cached.canvas : null;
+    decks[deckName].waveformSecondsPerPixel = cached ? cached.secondsPerPixel : 0;
     return;
   }
 
@@ -638,13 +640,18 @@ async function loadWaveform(deckName, track){
     return;
   }
 
-  const canvas = renderWaveformOffscreen(json.data, "#ffffff");
-  waveformCache.set(cacheKey, canvas);
+  const sampleRate = Number(json.sample_rate) || 48000;
+  const samplesPerPixel = Number(json.samples_per_pixel) || 256;
+  const secondsPerPixel = samplesPerPixel / sampleRate;
 
-  /* Vérifie que le deck affiche toujours le même morceau
-     (évite d'assigner une vieille waveform si le deck a changé entre temps). */
+  const canvas = renderWaveformOffscreen(json.data, "#ffffff");
+
+  const entry = { canvas, secondsPerPixel };
+  waveformCache.set(cacheKey, entry);
+
   if(decks[deckName].track && decks[deckName].track.file === track.file){
     decks[deckName].waveformCanvas = canvas;
+    decks[deckName].waveformSecondsPerPixel = secondsPerPixel;
   }
 }
 
@@ -934,6 +941,8 @@ async function loadDeck(deckName,track,play=false){
 
 /*new*/
   deck.waveformCanvas = null;   // reset le temps que la nouvelle waveform charge
+  deck.waveformSecondsPerPixel = 0;
+
   loadWaveform(deckName, track); // 👈 en arrière-plan, ne bloque rien
 
   
@@ -1833,30 +1842,29 @@ function draw(){
         ? drag.pendingTime
         : deck.audio.currentTime;
 /* new*/
-   if(deck.waveformCanvas){
-      const totalDuration = deck.endBeat - deck.startBeat;
+if(deck.waveformCanvas && deck.waveformSecondsPerPixel > 0){
+      const spp = deck.waveformSecondsPerPixel;
 
-      if(totalDuration > 0){
-        const visibleStart = displayTime - TIMELINE_PAST;
-        const visibleEnd = displayTime + TIMELINE_FUTURE;
+      const visibleStart = displayTime - TIMELINE_PAST;
+      const visibleEnd = displayTime + TIMELINE_FUTURE;
 
-        const srcX = ((visibleStart - deck.startBeat) / totalDuration) * deck.waveformCanvas.width;
-        const srcWidth = ((visibleEnd - visibleStart) / totalDuration) * deck.waveformCanvas.width;
+      const srcX = visibleStart / spp;
+      const srcWidth = (visibleEnd - visibleStart) / spp;
 
-        const clampedX = Math.max(0, srcX);
-        const clampedWidth = Math.min(srcWidth, deck.waveformCanvas.width - clampedX);
+      const clampedX = Math.max(0, srcX);
+      const maxAvailable = deck.waveformCanvas.width - clampedX;
+      const clampedWidth = Math.min(srcWidth, maxAvailable);
 
-        if(clampedWidth > 0){
-          ctx.globalAlpha = 0.25;
-          ctx.drawImage(
-            deck.waveformCanvas,
-            clampedX, 0,
-            clampedWidth, deck.waveformCanvas.height,
-            0, centerY - 30,
-            width, 60
-          );
-          ctx.globalAlpha = 1;
-        }
+      if(clampedWidth > 0){
+        ctx.globalAlpha = 0.25;
+        ctx.drawImage(
+          deck.waveformCanvas,
+          clampedX, 0,
+          clampedWidth, deck.waveformCanvas.height,
+          0, centerY - 30,
+          width, 60
+        );
+        ctx.globalAlpha = 1;
       }
     }
 
