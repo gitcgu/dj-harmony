@@ -50,6 +50,20 @@ button.active{background:#2367d1;border-color:#5b9cff}
   color:#062a15;
   box-shadow:0 0 12px rgba(54,212,122,.6);
 }
+
+#masterMute{
+  border-color:#5b9cff;
+}
+
+#masterMute.muted{
+  background:#c0392b;
+  border-color:#ff6b5b;
+  color:#fff;
+}
+
+body.compact-mode #masterMute{
+  margin-left:auto;
+}
   
 #status{color:#9ba9bc;margin-left:8px}
 
@@ -90,8 +104,14 @@ button.active{background:#2367d1;border-color:#5b9cff}
   top:14px;
   font-size:27px;
   font-weight:800;
+  cursor:pointer;
+  user-select:none;
 }
 
+.deck-name:hover{
+  opacity:0.7;
+}
+  
 .title{
   font-weight:700;
   font-size:17px;
@@ -358,6 +378,8 @@ body.compact-mode #play-C{
   <button id="autoPlay">▶ AUTO PLAY</button>
 
   <span id="status">Recherche des _beat.json...</span>
+  <button id="masterMute" title="no sound" style="margin-left:auto;">🔊 SON</button>
+
 </div>
 
 <!-- <div id="info">
@@ -1773,6 +1795,23 @@ for(const deckName of ["A","B","C"]){
     });
   });
 }
+
+for(const deckName of ["A","B","C"]){
+  const deckNameEl = document.querySelector(
+    "#title-" + deckName
+  ).closest(".deck").querySelector(".deck-name");
+
+  if(deckNameEl){
+    deckNameEl.addEventListener("click",() => {
+      const deck = decks[deckName];
+
+      if(deck.loaded && !deck.audio.paused){
+        deck.audio.pause();
+        state(deckName,"PAUSE • (coupé)");
+      }
+    });
+  }
+}
   
 /* ============================================================
    MODES
@@ -1856,9 +1895,10 @@ function draw(){
     ctx.lineTo(width,top);
     ctx.stroke();
 
-    ctx.fillStyle = colors[deckName];
-    ctx.font = "bold 18px Arial";
-    ctx.fillText(deckName,12,top+24);
+ // A B C inutile
+  //   ctx.fillStyle = colors[deckName];
+ //   ctx.font = "bold 18px Arial";
+ //   ctx.fillText(deckName,12,top+24);
 
     if(!deck.track || !deck.loaded){
       ctx.fillStyle = "#526078";
@@ -2462,6 +2502,34 @@ document.addEventListener("visibilitychange",async() => {
   }
 });
 
+/* ============================================================
+   MASTER MUTE — coupe le son de tous les decks
+   ============================================================ */
+
+let masterMuted = false;
+
+function setMasterMute(muted){
+  masterMuted = muted;
+
+  for(const deckName of ["A","B","C"]){
+    decks[deckName].audio.muted = muted;
+  }
+
+  const btn = document.getElementById("masterMute");
+
+  if(muted){
+    btn.textContent = "🔇 MUET";
+    btn.classList.add("muted");
+  }else{
+    btn.textContent = "🔊 SON";
+    btn.classList.remove("muted");
+  }
+}
+
+document.getElementById("masterMute").addEventListener("click",() => {
+  setMasterMute(!masterMuted);
+});
+  
 /* ============================================================
    INIT
    ============================================================ */
