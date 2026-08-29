@@ -349,6 +349,7 @@ body.compact-mode #play-C{
 
   <h1>🎧 DJ Harmonic</h1>
 
+  <button class="mode" data-mode="all">ALL</button>
   <button class="mode" data-mode="cool">COOL</button>
   <button class="mode active" data-mode="normal">NORMAL</button>
   <button class="mode" data-mode="energy">ENERGY</button>
@@ -974,7 +975,7 @@ async function loadDeck(deckName,track,play=false){
     "s → " +
     deck.endBeat.toFixed(3) +
     "s" +
-     " • fin dans " + formatRemaining(deck)
+     " • fin " + formatRemaining(deck)
   );
 
   if(play){
@@ -1038,6 +1039,8 @@ function bpmInSelectedMode(originalBpm){
   }
 
   switch(mode){
+    case "all":
+      return true;
     case "cool":
       return bpm < 90;
     case "normal":
@@ -1294,7 +1297,7 @@ async function crossfade(deckName){
   }
 
 /*  state(nextDeckName,"LECTURE • CROSSFADE 30s"); */
-  state(nextDeckName,"LECTURE • CROSSFADE 30s • fin dans " + formatRemaining(next));
+  state(nextDeckName,"LECTURE • CROSSFADE 30s • fin " + formatRemaining(next));
 
 
   /* Pendant que B joue, on prépare déjà C.
@@ -1408,7 +1411,7 @@ function monitor(deckName){
     const currentSecond = Math.floor(deck.audio.currentTime);
     if(deck._lastDisplayedSecond !== currentSecond){
       deck._lastDisplayedSecond = currentSecond;
-      state(deckName,"LECTURE • fin dans " + formatRemaining(deck));
+      state(deckName,"LECTURE • fin " + formatRemaining(deck));
     }
   }
   if(deck.audio.currentTime >= deck.endBeat){
@@ -1614,7 +1617,7 @@ for(const beat of target.beats){
     targetName,
     "SYNC • " + referenceName +
     " • beat " + closestBeat.toFixed(3) + "s" +
-    " • fin dans " + formatRemaining(target)
+    " • fin " + formatRemaining(target)
   );
 }
 
@@ -1643,7 +1646,7 @@ function stopLoop(deckName){
   updateLoopButtonsUI(deckName);
 }
 
-function startLoop(deckName,barsCount){
+function startLoop(deckName,beatsCount){
   const deck = decks[deckName];
 
   if(!deck.loaded || !deck.track || !deck.beats.length){
@@ -1652,15 +1655,8 @@ function startLoop(deckName,barsCount){
 
   updateBeatIndex(deckName);
 
-  const currentIdx = deck.beatIndex;
-
-  /* On se cale sur la barre majeure la plus proche (multiple de 4)
-     égale ou juste avant la position actuelle. */
-  const startIdx = currentIdx - (currentIdx % 4);
-
-  /* barsCount représente maintenant un nombre de BARRES (4 beats chacune). */
-  const beatsToJump = barsCount * 4;
-  const endIdx = Math.min(startIdx + beatsToJump, deck.beats.length - 1);
+  const startIdx = deck.beatIndex;
+  const endIdx = Math.min(startIdx + beatsCount, deck.beats.length - 1);
 
   if(endIdx <= startIdx){
     state(deckName,"LOOP • PAS ASSEZ DE BEATS RESTANTS");
@@ -1672,7 +1668,7 @@ function startLoop(deckName,barsCount){
 
   deck.loop = {
     active: true,
-    beatsCount: barsCount,
+    beatsCount: beatsCount,
     startTime: startTime,
     endTime: endTime
   };
@@ -1690,7 +1686,7 @@ function startLoop(deckName,barsCount){
 
   state(
     deckName,
-    "LOOP " + barsCount + " BARRE(S) • " +
+    "LOOP " + beatsCount + " BEAT(S) • " +
     startTime.toFixed(3) + "s → " + endTime.toFixed(3) + "s"
   );
 }
@@ -1772,6 +1768,7 @@ document.querySelectorAll(".mode").forEach(button => {
     mode = button.dataset.mode;
 
     const labels = {
+      all:"ALL • any BPM",
       cool:"COOL • original_bpm < 90",
       normal:"NORMAL • 90 ≤ original_bpm < 105",
       energy:"ENERGY • 105 ≤ original_bpm < 120",
@@ -2166,7 +2163,7 @@ canvas.addEventListener("pointermove",event => {
   state(
     drag.deck,
     "SEEK • " + newTime.toFixed(2) + "s" +
-    " • fin dans " + formatRemaining(deck)
+    " • fin " + formatRemaining(deck)
   );
 
   event.preventDefault();
@@ -2218,13 +2215,13 @@ function finishDrag(event){
     state(
       deckName,
       "LECTURE • " + finalTime.toFixed(2) + "s" +
-      " • fin dans " + formatRemaining(deck)
+      " • fin " + formatRemaining(deck)
     );
   }else{
     state(
       deckName,
       "PAUSE • " + finalTime.toFixed(2) + "s" +
-      " • fin dans " + formatRemaining(deck)
+      " • fin " + formatRemaining(deck)
     );
   }
 
