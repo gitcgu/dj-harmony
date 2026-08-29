@@ -1855,14 +1855,14 @@ if(deck.waveformCanvas && deck.waveformSecondsPerPixel > 0){
       const maxAvailable = deck.waveformCanvas.width - clampedX;
       const clampedWidth = Math.min(srcWidth, maxAvailable);
 
-      if(clampedWidth > 0){
-        ctx.globalAlpha = 0.25;
+       if(clampedWidth > 0){
+        ctx.globalAlpha = 0.8;
         ctx.drawImage(
           deck.waveformCanvas,
           clampedX, 0,
           clampedWidth, deck.waveformCanvas.height,
-          0, centerY - 30,
-          width, 60
+          0, centerY - 45,
+          width, 90
         );
         ctx.globalAlpha = 1;
       }
