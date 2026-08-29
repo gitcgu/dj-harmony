@@ -565,6 +565,89 @@ function truncateTitle(text,maxLength){
   return text.slice(0,maxLength - 1).trim() + "…";
 }
 
+const WAVEFORM_DIR = "https://storage.googleapis.com/musica-mp3-bucket/waveforms/";
+
+function waveformFileName(track){
+  return String(track.file).replace(/\.mp3$/i, ".json");
+}
+
+async function fetchWaveformWithFallback(filename){
+  const attempts = [
+    filename,
+    filename.replace(/&/g, "&amp;")
+  ];
+
+  for(const attempt of attempts){
+    try{
+      const url = WAVEFORM_DIR + encodeURIComponent(attempt);
+      const response = await fetch(url);
+
+      if(response.ok){
+        return await response.json();
+      }
+    }catch(error){
+      /* on tente l'essai suivant */
+    }
+  }
+
+  return null;
+}
+
+const waveformCache = new Map();
+
+function renderWaveformOffscreen(data, color){
+  const pixelCount = Math.floor(data.length / 2);
+  const height = 60;
+
+  const offscreen = document.createElement("canvas");
+  offscreen.width = Math.max(1,pixelCount);
+  offscreen.height = height;
+
+  const octx = offscreen.getContext("2d");
+  octx.fillStyle = color;
+
+  const scale = height / 256;
+
+  for(let i=0;i<pixelCount;i++){
+    const min = data[i*2];
+    const max = data[i*2+1];
+
+    const y1 = height/2 - max*scale;
+    const y2 = height/2 - min*scale;
+
+    octx.fillRect(i, y1, 1, Math.max(1, y2 - y1));
+  }
+
+  return offscreen;
+}
+
+async function loadWaveform(deckName, track){
+  const cacheKey = track.file;
+
+  if(waveformCache.has(cacheKey)){
+    decks[deckName].waveformCanvas = waveformCache.get(cacheKey);
+    return;
+  }
+
+  const filename = waveformFileName(track);
+  const json = await fetchWaveformWithFallback(filename);
+
+  if(!json || !Array.isArray(json.data)){
+    console.warn("[WAVEFORM] introuvable :",filename);
+    waveformCache.set(cacheKey, null);
+    return;
+  }
+
+  const canvas = renderWaveformOffscreen(json.data, "#ffffff");
+  waveformCache.set(cacheKey, canvas);
+
+  /* Vérifie que le deck affiche toujours le même morceau
+     (évite d'assigner une vieille waveform si le deck a changé entre temps). */
+  if(decks[deckName].track && decks[deckName].track.file === track.file){
+    decks[deckName].waveformCanvas = canvas;
+  }
+}
+
 /* ============================================================
    CATALOGUE
    ============================================================ */
@@ -849,6 +932,11 @@ async function loadDeck(deckName,track,play=false){
 
   deck.loaded = true;
 
+/*new*/
+  deck.waveformCanvas = null;   // reset le temps que la nouvelle waveform charge
+  loadWaveform(deckName, track); // 👈 en arrière-plan, ne bloque rien
+
+  
   showTrack(deckName,track);
 
   setAudioTime(deckName,deck.startBeat);
@@ -1744,7 +1832,35 @@ function draw(){
       (drag && drag.deck === deckName && Number.isFinite(drag.pendingTime))
         ? drag.pendingTime
         : deck.audio.currentTime;
+/* new*/
+   if(deck.waveformCanvas){
+      const totalDuration = deck.endBeat - deck.startBeat;
 
+      if(totalDuration > 0){
+        const visibleStart = displayTime - TIMELINE_PAST;
+        const visibleEnd = displayTime + TIMELINE_FUTURE;
+
+        const srcX = ((visibleStart - deck.startBeat) / totalDuration) * deck.waveformCanvas.width;
+        const srcWidth = ((visibleEnd - visibleStart) / totalDuration) * deck.waveformCanvas.width;
+
+        const clampedX = Math.max(0, srcX);
+        const clampedWidth = Math.min(srcWidth, deck.waveformCanvas.width - clampedX);
+
+        if(clampedWidth > 0){
+          ctx.globalAlpha = 0.25;
+          ctx.drawImage(
+            deck.waveformCanvas,
+            clampedX, 0,
+            clampedWidth, deck.waveformCanvas.height,
+            0, centerY - 30,
+            width, 60
+          );
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+
+/ * fin new*/ 
     let lastX = -Infinity;
 
     for(let i=0;i<deck.beats.length;i++){
