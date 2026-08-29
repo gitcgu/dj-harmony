@@ -243,7 +243,8 @@ body.compact-mode .deck-list{
   display:flex;
   flex-direction:column;
   gap:4px;
-  width:150px;
+  /* width:150px; old */ 
+  width:220px;
   flex:0 0 150px;
 }
 
@@ -264,7 +265,7 @@ body.compact-mode .deck-name{
 }
 
 body.compact-mode .title{
-  font-size:9px;
+  font-size:11px;
   line-height:1.15;
   -webkit-line-clamp:2;
 }
@@ -282,6 +283,12 @@ body.compact-mode .state{
 body.compact-mode .controls{
   position:static;
   margin-top:3px;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+body.compact-mode .controls-row{
   display:flex;
   gap:3px;
 }
