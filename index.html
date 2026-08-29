@@ -111,7 +111,12 @@ body.compact-mode #masterMute{
 .deck-name:hover{
   opacity:0.7;
 }
-  
+
+.deck-name.muted{
+  opacity:0.3;
+  filter:grayscale(1);
+}
+
 .title{
   font-weight:700;
   font-size:17px;
@@ -1585,7 +1590,7 @@ async function startAuto(){
 
   await prepareNext("A");
 
-  status("AUTO ON • BOUCLE INFINIE A → B → C → A → B → C → ... • crossfade 30s");
+  status("AUTO ON • infiny loop A → B → C → A  ... • crossfade 30s");
 }
 
 function stopAuto(){
@@ -1805,9 +1810,16 @@ for(const deckName of ["A","B","C"]){
     deckNameEl.addEventListener("click",() => {
       const deck = decks[deckName];
 
-      if(deck.loaded && !deck.audio.paused){
-        deck.audio.pause();
-        state(deckName,"PAUSE • (coupé)");
+      if(!deck.loaded){
+        return;
+      }
+
+      deck.audio.muted = !deck.audio.muted;
+
+      if(deck.audio.muted){
+        deckNameEl.classList.add("muted");
+      }else{
+        deckNameEl.classList.remove("muted");
       }
     });
   }
