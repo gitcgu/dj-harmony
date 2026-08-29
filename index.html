@@ -462,16 +462,16 @@ body.compact-mode #play-C{
 </div>
 
 <div class="help">
-  <b>Timeline :</b> les beats arrivent de la droite, passent par NOW et disparaissent à gauche.
-  L'échelle est négative à gauche et positive à droite.
+  <b>Timeline:</b> beats come in from the right, pass through NOW and disappear on the left.
+  The scale is negative on the left and positive on the right.
   <br>
-  <b>SEEK :</b> cliquer + glisser horizontalement sur la ligne A, B ou C déplace réellement la lecture.
+  <b>SEEK:</b> click + drag horizontally on line A, B or C to actually move the playback position.
   <br>
-  <b>Lecture :</b> début = premier beat du _beat.json ; fin = dernier beat du _beat.json.
+  <b>Playback:</b> start = first beat of the _beat.json; end = last beat of the _beat.json.
   <br>
-  <b>Auto :</b> lecture infinie A → B → C → A → B → C → ... avec recouvrement/crossfade de 30 secondes.
+  <b>Auto:</b> infinite playback A → B → C → A → B → C → ... with a 30-second overlap/crossfade.
   <br>
-  <b>NEXT :</b> sélection basée sur original_bpm + KEY depuis catalogue.json.
+  <b>NEXT:</b> selection based on original_bpm + KEY from catalogue.json.
 </div>
 
 <script>
@@ -1017,7 +1017,7 @@ async function loadDeck(deckName,track,play=false){
     deck.eq.low.gain.value = 0;
   }
    
-  state(deckName,"CHARGEMENT...");
+  state(deckName,"LOADING...");
 
   const url = mp3Url(track);
 
@@ -2035,7 +2035,7 @@ function draw(){
       ctx.fillStyle = "#526078";
       ctx.font = "13px Arial";
       ctx.fillText(
-      deck.track ? "Chargement..." : "Aucun morceau chargé",
+      deck.track ? "Loading..." : "no mp3 ready",
       45,
       centerY
      );
