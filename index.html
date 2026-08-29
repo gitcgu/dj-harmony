@@ -1390,7 +1390,9 @@ function checkLoopBoundary(deckName){
   }
 
   // const SAFETY_MARGIN = 0.02;  20 ms d'anticipation la boucle coupe un poil trop tôt
-   const SAFETY_MARGIN = 0.01; // 10 ms d'anticipation 
+ //  const SAFETY_MARGIN = 0.01;  10 ms d'anticipation trop tard
+     const SAFETY_MARGIN = 0.015; // 15 ms d'anticipation ...
+
 
   if(deck.audio.currentTime >= deck.loop.endTime - SAFETY_MARGIN){
     deck.audio.currentTime = deck.loop.startTime;
