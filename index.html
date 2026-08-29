@@ -1007,6 +1007,8 @@ async function loadDeck(deckName,track,play=false){
   deck.seeking = false;
   deck.seekTarget = null;
   deck.loop = { active:false, beatsCount:0, startTime:0, endTime:0 };   // 👈 AJOUT
+  updateLoopButtonsUI(deckName);   // 👈 AJOUT — remet les boutons 4/8/16 1/2/4 en gris
+
 
     /* Réinitialisation de l'EQ pour le nouveau morceau */
   deck.eqValues = { high:0, mid:0, low:0 };
