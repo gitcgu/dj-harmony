@@ -1844,30 +1844,34 @@ function draw(){
 /* new*/
 if(deck.waveformCanvas && deck.waveformSecondsPerPixel > 0){
       const spp = deck.waveformSecondsPerPixel;
+      const waveformDurationSeconds = deck.waveformCanvas.width * spp;
 
       const visibleStart = displayTime - TIMELINE_PAST;
       const visibleEnd = displayTime + TIMELINE_FUTURE;
 
-      const srcX = visibleStart / spp;
-      const srcWidth = (visibleEnd - visibleStart) / spp;
+      /* On ne peut pas afficher de waveform avant 0s ni après la fin réelle du fichier. */
+      const clampedStart = Math.max(0, visibleStart);
+      const clampedEnd = Math.min(waveformDurationSeconds, visibleEnd);
 
-      const clampedX = Math.max(0, srcX);
-      const maxAvailable = deck.waveformCanvas.width - clampedX;
-      const clampedWidth = Math.min(srcWidth, maxAvailable);
+      if(clampedEnd > clampedStart){
+        const srcX = clampedStart / spp;
+        const srcWidth = (clampedEnd - clampedStart) / spp;
 
-       if(clampedWidth > 0){
-        ctx.globalAlpha = 0.8;
+        /* Position à l'écran calculée EXACTEMENT comme pour les beats. */
+        const destX = nowX + (clampedStart - displayTime) * px;
+        const destWidth = (clampedEnd - clampedStart) * px;
+
+        ctx.globalAlpha = 0.6;
         ctx.drawImage(
           deck.waveformCanvas,
-          clampedX, 0,
-          clampedWidth, deck.waveformCanvas.height,
-          0, centerY - 45,
-          width, 90
+          srcX, 0,
+          srcWidth, deck.waveformCanvas.height,
+          destX, centerY - 45,
+          destWidth, 90
         );
         ctx.globalAlpha = 1;
       }
     }
-
 / * fin new*/ 
     let lastX = -Infinity;
 
