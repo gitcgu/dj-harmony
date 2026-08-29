@@ -113,11 +113,25 @@ button.active{background:#2367d1;border-color:#5b9cff}
 .controls{
   position:absolute;
   left:62px;
+  right:12px   /* new */
   bottom:12px;
   display:flex;
   gap:7px;
+  flex-wrap:wrap;  /* new */
 }
 
+.loop-btn{
+  padding:6px 10px;
+  min-width:30px;
+  font-size:12px;
+}
+
+.loop-btn.active{
+  background:#ffb800;
+  border-color:#ffd76b;
+  color:#141c29;
+}
+  
 #canvas{
   width:100%;
   height:520px;
@@ -323,6 +337,9 @@ body.compact-mode #canvas{
         <button id="play-A">▶ / ❚❚</button>
         <button id="next-A">NEXT ▶▶</button>
         <button id="sync-A">SYNC</button>
+        <button class="loop-btn" id="loop-A-1" data-deck="A" data-beats="1">1</button>
+        <button class="loop-btn" id="loop-A-2" data-deck="A" data-beats="2">2</button>
+        <button class="loop-btn" id="loop-A-4" data-deck="A" data-beats="4">4</button>
       </div>
     </div>
 
@@ -335,6 +352,9 @@ body.compact-mode #canvas{
         <button id="play-B">▶ / ❚❚</button>
         <button id="next-B">NEXT ▶▶</button>
         <button id="sync-B">SYNC</button>
+        <button class="loop-btn" id="loop-B-1" data-deck="B" data-beats="1">1</button>
+        <button class="loop-btn" id="loop-B-2" data-deck="B" data-beats="2">2</button>
+        <button class="loop-btn" id="loop-B-4" data-deck="B" data-beats="4">4</button>
       </div>
     </div>
 
@@ -347,6 +367,9 @@ body.compact-mode #canvas{
         <button id="play-C">▶ / ❚❚</button>
         <button id="next-C">NEXT ▶▶</button>
         <button id="sync-C">SYNC</button>
+        <button class="loop-btn" id="loop-C-1" data-deck="C" data-beats="1">1</button>
+        <button class="loop-btn" id="loop-C-2" data-deck="C" data-beats="2">2</button>
+        <button class="loop-btn" id="loop-C-4" data-deck="C" data-beats="4">4</button>
       </div>
     </div>
 
@@ -440,7 +463,8 @@ function createDeck(){
     beatIndex: 0,
     chain: "idle",
     seeking: false,
-    seekTarget: null
+    seekTarget: null,
+    loop: { active:false, beatsCount:0, startTime:0, endTime:0 }
   };
 }
 
@@ -741,6 +765,7 @@ async function loadDeck(deckName,track,play=false){
   deck.chain = "idle";
   deck.seeking = false;
   deck.seekTarget = null;
+  deck.loop = { active:false, beatsCount:0, startTime:0, endTime:0 };   // 👈 AJOUT
 
   state(deckName,"CHARGEMENT...");
 
@@ -1214,6 +1239,15 @@ function monitor(deckName){
 
   updateBeatIndex(deckName);
 
+  /* 👇 AJOUT ICI — gestion du loop, prioritaire sur tout le reste */
+  if(deck.loop.active){
+    if(deck.audio.currentTime >= deck.loop.endTime){
+      deck.audio.currentTime = deck.loop.startTime;
+      updateBeatIndex(deckName);
+    }
+    return;
+  }
+  
   if(auto && !deck.transition && !deck.audio.paused){
     const currentSecond = Math.floor(deck.audio.currentTime);
     if(deck._lastDisplayedSecond !== currentSecond){
@@ -1425,6 +1459,87 @@ for(const beat of target.beats){
 }
 
 /* ============================================================
+   LOOP N BEATS
+   ============================================================ */
+
+function updateLoopButtonsUI(deckName){
+  const deck = decks[deckName];
+
+  [1,2,4].forEach(beats => {
+    const btn = document.getElementById("loop-" + deckName + "-" + beats);
+    if(!btn) return;
+
+    if(deck.loop.active && deck.loop.beatsCount === beats){
+      btn.classList.add("active");
+    }else{
+      btn.classList.remove("active");
+    }
+  });
+}
+
+function stopLoop(deckName){
+  const deck = decks[deckName];
+  deck.loop.active = false;
+  updateLoopButtonsUI(deckName);
+}
+
+function startLoop(deckName,beatsCount){
+  const deck = decks[deckName];
+
+  if(!deck.loaded || !deck.track || !deck.beats.length){
+    return;
+  }
+
+  updateBeatIndex(deckName);
+
+  const idx = deck.beatIndex;
+  const endIdx = Math.min(idx + beatsCount, deck.beats.length - 1);
+
+  if(endIdx <= idx){
+    state(deckName,"LOOP • PAS ASSEZ DE BEATS RESTANTS");
+    return;
+  }
+
+  const startTime = deck.beats[idx];
+  const endTime = deck.beats[endIdx];
+
+  deck.loop = {
+    active: true,
+    beatsCount: beatsCount,
+    startTime: startTime,
+    endTime: endTime
+  };
+
+  deck.audio.currentTime = startTime;
+  updateBeatIndex(deckName);
+
+  if(deck.audio.paused){
+    deck.audio.play().catch(error => {
+      console.warn("[LOOP PLAY]",error);
+    });
+  }
+
+  updateLoopButtonsUI(deckName);
+
+  state(
+    deckName,
+    "LOOP " + beatsCount + " BEAT(S) • " +
+    startTime.toFixed(3) + "s → " + endTime.toFixed(3) + "s"
+  );
+}
+
+function toggleLoop(deckName,beatsCount){
+  const deck = decks[deckName];
+
+  if(deck.loop.active && deck.loop.beatsCount === beatsCount){
+    stopLoop(deckName);
+    state(deckName,"LOOP OFF");
+  }else{
+    startLoop(deckName,beatsCount);
+  }
+}
+  
+/* ============================================================
    BOUTONS
    ============================================================ */
 
@@ -1465,6 +1580,17 @@ for(const deckName of ["A","B","C"]){
   });
 }
 
+for(const deckName of ["A","B","C"]){
+  [1,2,4].forEach(beats => {
+    const btn = document.getElementById("loop-" + deckName + "-" + beats);
+    if(!btn) return;
+
+    btn.addEventListener("click",() => {
+      toggleLoop(deckName,beats);
+    });
+  });
+}
+  
 /* ============================================================
    MODES
    ============================================================ */
@@ -1742,6 +1868,8 @@ canvas.addEventListener("pointerdown",event => {
   if(!deck || !deck.loaded || !deck.track){
     return;
   }
+
+  stopLoop(deckName);   // 👈 AJOUT ICI
 
   const currentTime = Number(deck.audio.currentTime);
 
