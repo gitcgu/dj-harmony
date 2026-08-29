@@ -1171,8 +1171,8 @@ function chooseNext(current){
     return null;
   }
 
+  /* Priorité à la compatibilité de tonalité (KEY), dans toute la plage BPM du mode. */
   const harmonic = candidates.filter(track =>
-    bpmCompatible(current.original_bpm,track.original_bpm) &&
     keyCompatible(current.key,track.key)
   );
 
@@ -1180,14 +1180,7 @@ function chooseNext(current){
     return harmonic[Math.floor(Math.random()*harmonic.length)];
   }
 
-  const bpmOnly = candidates.filter(track =>
-    bpmCompatible(current.original_bpm,track.original_bpm)
-  );
-
-  if(bpmOnly.length){
-    return bpmOnly[Math.floor(Math.random()*bpmOnly.length)];
-  }
-
+  /* Si aucun morceau n'est compatible en KEY, on prend au hasard dans toute la plage. */
   return candidates[Math.floor(Math.random()*candidates.length)];
 }
 
@@ -1265,9 +1258,8 @@ function chooseNextInfinite(current){
     modeCandidates = candidates;
   }
 
-  /* Harmonie + BPM. */
-  let harmonic = modeCandidates.filter(track =>
-    bpmCompatible(current.original_bpm,track.original_bpm) &&
+  /* Priorité à la compatibilité de tonalité (KEY), dans toute la plage BPM du mode. */
+  const harmonic = modeCandidates.filter(track =>
     keyCompatible(current.key,track.key)
   );
 
@@ -1275,16 +1267,7 @@ function chooseNextInfinite(current){
     return harmonic[Math.floor(Math.random()*harmonic.length)];
   }
 
-  /* BPM seul. */
-  let bpmOnly = modeCandidates.filter(track =>
-    bpmCompatible(current.original_bpm,track.original_bpm)
-  );
-
-  if(bpmOnly.length){
-    return bpmOnly[Math.floor(Math.random()*bpmOnly.length)];
-  }
-
-  /* N'importe quel titre admissible. */
+  /* Si aucun morceau n'est compatible en KEY, on prend au hasard dans toute la plage. */
   if(modeCandidates.length){
     return modeCandidates[Math.floor(Math.random()*modeCandidates.length)];
   }
@@ -1293,6 +1276,7 @@ function chooseNextInfinite(current){
   return TRACKS[Math.floor(Math.random()*TRACKS.length)];
 }
 
+  
 async function prepareNext(deckName){
   if(!auto){
     return false;
