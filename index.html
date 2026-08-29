@@ -44,6 +44,13 @@ button.active{background:#2367d1;border-color:#5b9cff}
   background:#153a27;
 }
 
+#autoPlay.active{
+  background:#36d47a;
+  border-color:#7dffb0;
+  color:#062a15;
+  box-shadow:0 0 12px rgba(54,212,122,.6);
+}
+  
 #status{color:#9ba9bc;margin-left:8px}
 
 #info{
@@ -1386,6 +1393,8 @@ async function startAuto(){
 
   auto = true;
 
+  document.getElementById("autoPlay").classList.add("active");   // 👈 AJOUT
+
   await requestWakeLock();   // 👈 AJOUT
 
   if(!decks.A.loaded){
@@ -1416,6 +1425,8 @@ async function startAuto(){
 
 function stopAuto(){
   auto = false;
+
+  document.getElementById("autoPlay").classList.remove("active");   // 👈 AJOUT
 
   releaseWakeLock();   // 👈 AJOUT
 
