@@ -372,7 +372,7 @@ body.compact-mode #play-C{
     <span id="fullscreenIcon">⛶</span>
  </button>
 
-  <h1>🎧 DJ Harmonic</h1>
+  <h1>🎧 DJ Auto Harmonic</h1>
 
   <button class="mode" data-mode="all">ALL</button>
   <button class="mode" data-mode="cool">COOL</button>
@@ -403,7 +403,7 @@ body.compact-mode #play-C{
       <div class="deck-name" style="color:#58a6ff">A</div>
       <div class="title" id="title-A">--</div>
       <div class="meta" id="meta-A">--</div>
-      <div class="state" id="state-A">PRÊT</div>
+      <div class="state" id="state-A">READY</div>
       <div class="controls">
        <div class="controls-row">
         <button id="play-A">▶ ❚❚</button>
@@ -422,7 +422,7 @@ body.compact-mode #play-C{
       <div class="deck-name" style="color:#ff6b9d">B</div>
       <div class="title" id="title-B">--</div>
       <div class="meta" id="meta-B">--</div>
-      <div class="state" id="state-B">PRÊT</div>
+      <div class="state" id="state-B">READY</div>
       <div class="controls">
        <div class="controls-row">
         <button id="play-B">▶ ❚❚</button>
@@ -441,7 +441,7 @@ body.compact-mode #play-C{
       <div class="deck-name" style="color:#64ff9b">C</div>
       <div class="title" id="title-C">--</div>
       <div class="meta" id="meta-C">--</div>
-      <div class="state" id="state-C">PRÊT</div>
+      <div class="state" id="state-C">READY</div>
       <div class="controls">
         <div class="controls-row">
          <button id="play-C">▶ ❚❚</button>
@@ -1071,12 +1071,12 @@ async function loadDeck(deckName,track,play=false){
 
   state(
     deckName,
-    "PRÊT • " +
+    "READY • " +
     deck.startBeat.toFixed(3) +
     "s → " +
     deck.endBeat.toFixed(3) +
     "s" +
-     " • fin " + formatRemaining(deck)
+     " • end " + formatRemaining(deck)
   );
 
   if(play){
@@ -1221,11 +1221,11 @@ async function manualNext(deckName){
   try{
     await loadCandidateIntoDeck(deckName,next,false);
     if(!auto){
-      state(deckName,"PRÊT");
+      state(deckName,"READY");
     }
   }catch(error){
     console.error("[NEXT " + deckName + "]",error);
-    state(deckName,"ERREUR CHARGEMENT");
+    state(deckName,"ERROR LOADING");
   }
 }
 
@@ -1329,7 +1329,7 @@ async function prepareNext(deckName){
 
     state(
       nextDeckName,
-      "PRÊT • SUIVANT AUTO • "
+      "READY • NEXT AUTO • "
      /* "PRÊT • SUIVANT AUTO • " + candidate.file */
     );
 
@@ -1398,7 +1398,7 @@ async function crossfade(deckName){
   }
 
 /*  state(nextDeckName,"LECTURE • CROSSFADE 30s"); */
-  state(nextDeckName,"LECTURE • CROSSFADE 30s • fin " + formatRemaining(next));
+  state(nextDeckName,"READING • CROSSFADE 30s • end " + formatRemaining(next));
 
 
   /* Pendant que B joue, on prépare déjà C.
@@ -2702,10 +2702,10 @@ function setMasterMute(muted){
   const btn = document.getElementById("masterMute");
 
   if(muted){
-    btn.textContent = "🔇 MUET";
+    btn.textContent = "🔇 No sound";
     btn.classList.add("muted");
   }else{
-    btn.textContent = "🔊 SON";
+    btn.textContent = "🔊 Sound ok";
     btn.classList.remove("muted");
   }
 }
@@ -2726,7 +2726,7 @@ async function init(){
 
     status(
       TRACKS.length +
-      " morceaux disponibles • chargement de A..."
+      " mp3 ready • load A..."
     );
 
     const first =
@@ -2736,7 +2736,7 @@ async function init(){
 
     status(
       TRACKS.length +
-      " morceaux disponibles • A PRÊT"
+      " mp3 ready • A ready"
     );
 
     console.log(
