@@ -57,7 +57,7 @@ button.active{background:#2367d1;border-color:#5b9cff}
 
 .layout{
   display:grid;
-  grid-template-columns:330px minmax(0,1fr);
+  grid-template-columns:420px minmax(0,1fr); /* avant 330 */ 
   gap:14px;
   height:520px;
 }
@@ -87,14 +87,14 @@ button.active{background:#2367d1;border-color:#5b9cff}
 
 .title{
   font-weight:700;
-  font-size:15px;
+  font-size:17px;
   line-height:1.3;
   display:-webkit-box;
-  -webkit-line-clamp:3;
+  -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
   overflow:hidden;
   word-break:break-word;
-  max-height:calc(1.3em * 3);
+  max-height:calc(1.3em * 2);
 }
 
 .meta{
@@ -119,7 +119,15 @@ button.active{background:#2367d1;border-color:#5b9cff}
   gap:7px;
   flex-wrap:wrap;  /* new */
 }
+  
+.controls-row{
+  display:flex;
+  gap:6px;
+}
 
+.loop-row .loop-btn{
+  flex:1 1 0;
+}
 .loop-btn{
   padding:6px 10px;
   min-width:30px;
@@ -334,12 +342,16 @@ body.compact-mode #canvas{
       <div class="meta" id="meta-A">--</div>
       <div class="state" id="state-A">PRÊT</div>
       <div class="controls">
+       <div class="controls-row">
         <button id="play-A">▶ / ❚❚</button>
         <button id="next-A">NEXT ▶▶</button>
         <button id="sync-A">SYNC</button>
+      </div>
+       <div class="controls-row loop-row">
         <button class="loop-btn" id="loop-A-1" data-deck="A" data-beats="1">1</button>
         <button class="loop-btn" id="loop-A-2" data-deck="A" data-beats="2">2</button>
         <button class="loop-btn" id="loop-A-4" data-deck="A" data-beats="4">4</button>
+      </div>
       </div>
     </div>
 
@@ -349,12 +361,16 @@ body.compact-mode #canvas{
       <div class="meta" id="meta-B">--</div>
       <div class="state" id="state-B">PRÊT</div>
       <div class="controls">
+       <div class="controls-row">
         <button id="play-B">▶ / ❚❚</button>
         <button id="next-B">NEXT ▶▶</button>
         <button id="sync-B">SYNC</button>
+       </div>
+       <div class="controls-row loop-row">
         <button class="loop-btn" id="loop-B-1" data-deck="B" data-beats="1">1</button>
         <button class="loop-btn" id="loop-B-2" data-deck="B" data-beats="2">2</button>
         <button class="loop-btn" id="loop-B-4" data-deck="B" data-beats="4">4</button>
+       </div>
       </div>
     </div>
 
@@ -364,12 +380,16 @@ body.compact-mode #canvas{
       <div class="meta" id="meta-C">--</div>
       <div class="state" id="state-C">PRÊT</div>
       <div class="controls">
-        <button id="play-C">▶ / ❚❚</button>
-        <button id="next-C">NEXT ▶▶</button>
-        <button id="sync-C">SYNC</button>
+        <div class="controls-row">
+         <button id="play-C">▶ / ❚❚</button>
+         <button id="next-C">NEXT ▶▶</button>
+         <button id="sync-C">SYNC</button>
+        </div>
+       <div class="controls-row loop-row">
         <button class="loop-btn" id="loop-C-1" data-deck="C" data-beats="1">1</button>
         <button class="loop-btn" id="loop-C-2" data-deck="C" data-beats="2">2</button>
         <button class="loop-btn" id="loop-C-4" data-deck="C" data-beats="4">4</button>
+         </div>
       </div>
     </div>
 
@@ -407,7 +427,8 @@ const MP3_DIR = "https://storage.googleapis.com/musica-mp3-bucket/";
 const TRANSITION_SECONDS = 30;
 const BPM_TOLERANCE = 0.05;
 
-const TIMELINE_PAST = 20;
+/* onst TIMELINE_PAST = 20; */
+const TIMELINE_PAST = 15;
 const TIMELINE_FUTURE = 45;
 const NOW_RATIO = 0.34;
 
