@@ -590,7 +590,9 @@ async function loadCatalogue(){
 
     result.push({
       file: String(item.file),
-      original_bpm: Number(item.original_bpm),
+/* Attention important on se base sur le champs bpm tiré de recordbox , alors que original_bpm veanit du calculateur de beat */
+      /* original_bpm: Number(item.original_bpm), */
+      original_bpm: Number(item.bpm),
       key: String(item.key || ""),
       beatFile: String(item.beatFile)
     });
@@ -1105,7 +1107,8 @@ async function prepareNext(deckName){
 
     state(
       nextDeckName,
-      "PRÊT • SUIVANT AUTO • " + candidate.file
+      "PRÊT • SUIVANT AUTO • "
+     /* "PRÊT • SUIVANT AUTO • " + candidate.file */
     );
 
     return true;
