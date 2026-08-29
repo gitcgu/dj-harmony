@@ -1008,6 +1008,15 @@ async function loadDeck(deckName,track,play=false){
   deck.seekTarget = null;
   deck.loop = { active:false, beatsCount:0, startTime:0, endTime:0 };   // 👈 AJOUT
 
+    /* Réinitialisation de l'EQ pour le nouveau morceau */
+  deck.eqValues = { high:0, mid:0, low:0 };
+
+  if(deck.eq){
+    deck.eq.high.gain.value = 0;
+    deck.eq.mid.gain.value = 0;
+    deck.eq.low.gain.value = 0;
+  }
+   
   state(deckName,"CHARGEMENT...");
 
   const url = mp3Url(track);
