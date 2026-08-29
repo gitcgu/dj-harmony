@@ -1716,7 +1716,6 @@ function draw(){
     const minPixelGap = 10;
     const rawStride = minPixelGap / Math.max(0.001, avgBeatGap * px);
     const stride = Math.max(1, Math.round(rawStride));
-
     for(let i=0; i<deck.beats.length; i += stride){
       const beat = deck.beats[i];
       const delta = beat - displayTime;
@@ -1749,6 +1748,7 @@ function draw(){
       ctx.arc(x, centerY, major ? 3 : 2, 0, Math.PI*2);
       ctx.fill();
     }
+
     }
 
     ctx.strokeStyle = colors[deckName];
