@@ -411,9 +411,9 @@ body.compact-mode #play-C{
         <button id="sync-A">SYNC</button>
       </div>
        <div class="controls-row loop-row">
-         <button class="loop-btn" id="loop-A-4" data-deck="A" data-beats="4">4</button>
-         <button class="loop-btn" id="loop-A-8" data-deck="A" data-beats="8">8</button>
-         <button class="loop-btn" id="loop-A-16" data-deck="A" data-beats="16">16</button>
+         <button class="loop-btn" id="loop-A-4" data-deck="A" data-beats="4">1</button>
+         <button class="loop-btn" id="loop-A-8" data-deck="A" data-beats="8">2</button>
+         <button class="loop-btn" id="loop-A-16" data-deck="A" data-beats="16">4</button>
       </div>
       </div>
     </div>
@@ -430,9 +430,9 @@ body.compact-mode #play-C{
         <button id="sync-B">SYNC</button>
        </div>
        <div class="controls-row loop-row">
-        <button class="loop-btn" id="loop-B-4" data-deck="B" data-beats="4">4</button>
-        <button class="loop-btn" id="loop-B-8" data-deck="B" data-beats="8">8</button>
-        <button class="loop-btn" id="loop-B-16" data-deck="B" data-beats="16">16</button>
+        <button class="loop-btn" id="loop-B-4" data-deck="B" data-beats="4">1</button>
+        <button class="loop-btn" id="loop-B-8" data-deck="B" data-beats="8">2</button>
+        <button class="loop-btn" id="loop-B-16" data-deck="B" data-beats="16">4</button>
        </div>
       </div>
     </div>
@@ -449,9 +449,9 @@ body.compact-mode #play-C{
          <button id="sync-C">SYNC</button>
         </div>
        <div class="controls-row loop-row">
-        <button class="loop-btn" id="loop-C-4" data-deck="C" data-beats="4">4</button>
-        <button class="loop-btn" id="loop-C-8" data-deck="C" data-beats="8">8</button>
-        <button class="loop-btn" id="loop-C-16" data-deck="C" data-beats="16">16</button>
+        <button class="loop-btn" id="loop-C-4" data-deck="C" data-beats="4">1</button>
+        <button class="loop-btn" id="loop-C-8" data-deck="C" data-beats="8">2</button>
+        <button class="loop-btn" id="loop-C-16" data-deck="C" data-beats="16">4</button>
          </div>
       </div>
     </div>
@@ -1809,8 +1809,9 @@ function startLoop(deckName,beatsCount){
 
   state(
     deckName,
-    "LOOP " + beatsCount + " BEAT(S) • " +
-    startTime.toFixed(3) + "s → " + endTime.toFixed(3) + "s"
+/*    "LOOP " + beatsCount + " BEAT(S) • " + */ 
+    "LOOP " + (beatsCount/4) + " BEAT(S)"  
+ /*   startTime.toFixed(3) + "s → " + endTime.toFixed(3) + "s" */
   );
 }
   
