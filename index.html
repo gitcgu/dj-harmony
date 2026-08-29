@@ -1716,7 +1716,8 @@ function draw(){
     const minPixelGap = 10;
     const rawStride = minPixelGap / Math.max(0.001, avgBeatGap * px);
     const stride = Math.max(1, Math.round(rawStride));
-    for(let i=0; i<deck.beats.length; i += stride){
+      /*new*/
+   for(let i=0; i<deck.beats.length; i += stride){
       const beat = deck.beats[i];
       const delta = beat - displayTime;
 
@@ -1732,18 +1733,25 @@ function draw(){
 
       const major = i % (stride*4) === 0;
 
-      ctx.strokeStyle = major
-        ? "rgba(190,205,225,.72)"
-        : "rgba(130,150,180,.40)";
+      const inLoop =
+        deck.loop.active &&
+        beat >= deck.loop.startTime &&
+        beat <= deck.loop.endTime;
 
-      ctx.lineWidth = major ? 2 : 1;
+      ctx.strokeStyle = inLoop
+        ? "#ffcc00"
+        : (major
+            ? "rgba(190,205,225,.72)"
+            : "rgba(130,150,180,.40)");
+
+      ctx.lineWidth = inLoop ? (major ? 3 : 2) : (major ? 2 : 1);
 
       ctx.beginPath();
       ctx.moveTo(x, centerY - (major ? 25 : 15));
       ctx.lineTo(x, centerY + (major ? 25 : 15));
       ctx.stroke();
 
-      ctx.fillStyle = colors[deckName];
+      ctx.fillStyle = inLoop ? "#ffcc00" : colors[deckName];
       ctx.beginPath();
       ctx.arc(x, centerY, major ? 3 : 2, 0, Math.PI*2);
       ctx.fill();
