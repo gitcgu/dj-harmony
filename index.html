@@ -1483,7 +1483,7 @@ function stopLoop(deckName){
   updateLoopButtonsUI(deckName);
 }
 
-function startLoop(deckName,beatsCount){
+function startLoop(deckName,barsCount){
   const deck = decks[deckName];
 
   if(!deck.loaded || !deck.track || !deck.beats.length){
@@ -1492,20 +1492,27 @@ function startLoop(deckName,beatsCount){
 
   updateBeatIndex(deckName);
 
-  const idx = deck.beatIndex;
-  const endIdx = Math.min(idx + beatsCount, deck.beats.length - 1);
+  const currentIdx = deck.beatIndex;
 
-  if(endIdx <= idx){
+  /* On se cale sur la barre majeure la plus proche (multiple de 4)
+     égale ou juste avant la position actuelle. */
+  const startIdx = currentIdx - (currentIdx % 4);
+
+  /* barsCount représente maintenant un nombre de BARRES (4 beats chacune). */
+  const beatsToJump = barsCount * 4;
+  const endIdx = Math.min(startIdx + beatsToJump, deck.beats.length - 1);
+
+  if(endIdx <= startIdx){
     state(deckName,"LOOP • PAS ASSEZ DE BEATS RESTANTS");
     return;
   }
 
-  const startTime = deck.beats[idx];
+  const startTime = deck.beats[startIdx];
   const endTime = deck.beats[endIdx];
 
   deck.loop = {
     active: true,
-    beatsCount: beatsCount,
+    beatsCount: barsCount,
     startTime: startTime,
     endTime: endTime
   };
@@ -1523,11 +1530,11 @@ function startLoop(deckName,beatsCount){
 
   state(
     deckName,
-    "LOOP " + beatsCount + " BEAT(S) • " +
+    "LOOP " + barsCount + " BARRE(S) • " +
     startTime.toFixed(3) + "s → " + endTime.toFixed(3) + "s"
   );
 }
-
+  
 function toggleLoop(deckName,beatsCount){
   const deck = decks[deckName];
 
