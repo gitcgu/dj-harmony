@@ -120,7 +120,7 @@ button.active{background:#2367d1;border-color:#5b9cff}
 .controls{
   position:absolute;
   left:62px;
-  right:12px   /* new */
+  right:12px;   /* new */
   bottom:12px;
   display:flex;
   gap:7px;
@@ -595,8 +595,8 @@ async function loadCatalogue(){
     result.push({
       file: String(item.file),
 /* Attention important on se base sur le champs bpm tiré de recordbox , alors que original_bpm veanit du calculateur de beat */
-      /* original_bpm: Number(item.original_bpm), */
-      original_bpm: Number(item.bpm),
+      original_bpm: Number(item.original_bpm), 
+      /* original_bpm: Number(item.bpm), */
       key: String(item.key || ""),
       beatFile: String(item.beatFile)
     });
