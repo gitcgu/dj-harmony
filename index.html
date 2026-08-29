@@ -530,6 +530,7 @@ let TRACKS = [];
 let mode = "normal";
 let auto = false;
 let drag = null;
+let eqDrag = null;
 
 /* ============================================================
    DECKS
@@ -562,6 +563,65 @@ const decks = {
   C: createDeck()
 };
 
+/* ============================================================
+   EQ 3 BANDES — WEB AUDIO API
+   ============================================================ */
+
+let audioCtx = null;
+
+function ensureAudioContext(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(audioCtx.state === "suspended"){
+    audioCtx.resume();
+  }
+}
+
+function ensureAudioGraph(deckName){
+  const deck = decks[deckName];
+
+  if(deck.audioGraphReady){
+    return;
+  }
+
+  ensureAudioContext();
+
+  const source = audioCtx.createMediaElementSource(deck.audio);
+
+  const low = audioCtx.createBiquadFilter();
+  low.type = "lowshelf";
+  low.frequency.value = 200;
+  low.gain.value = deck.eqValues.low;
+
+  const mid = audioCtx.createBiquadFilter();
+  mid.type = "peaking";
+  mid.frequency.value = 1000;
+  mid.Q.value = 1;
+  mid.gain.value = deck.eqValues.mid;
+
+  const high = audioCtx.createBiquadFilter();
+  high.type = "highshelf";
+  high.frequency.value = 3000;
+  high.gain.value = deck.eqValues.high;
+
+  source.connect(low);
+  low.connect(mid);
+  mid.connect(high);
+  high.connect(audioCtx.destination);
+
+  deck.eq = { low, mid, high };
+  deck.audioGraphReady = true;
+}
+
+function applyEqValue(deckName, band, value){
+  const deck = decks[deckName];
+  deck.eqValues[band] = value;
+
+  if(deck.eq){
+    deck.eq[band].gain.value = value;
+  }
+}
 /* ============================================================
    STATUS / UI
    ============================================================ */
@@ -1581,6 +1641,9 @@ async function startAuto(){
 
   decks.A.chain = "playing";
 
+    ensureAudioGraph("A");   // 👈 AJOUT
+
+  
   if(decks.A.audio.paused){
     if(
       decks.A.audio.currentTime < decks.A.startBeat ||
@@ -1764,7 +1827,10 @@ for(const deckName of ["A","B","C"]){
     if(!deck.loaded){
       return;
     }
+    
+    ensureAudioGraph(deckName);   // 👈 AJOUT
 
+    
     if(deck.audio.paused){
       if(deck.audio.currentTime >= deck.endBeat){
         setAudioTime(deckName,deck.startBeat);
@@ -2190,7 +2256,28 @@ canvas.addEventListener("pointerdown",event => {
 
     /* Zone EQ (sliders graves/médiums/aigus) : on bloque le seek ici,
      l'interaction EQ sera ajoutée à l'étape suivante. */
-  if(x >= 0 && x <= 90){
+/* Zone EQ (sliders graves/médiums/aigus) */
+  if(x >= 0 && x <= 90 && deck && deck._eqSliderRects){
+    for(const band of ["high","mid","low"]){
+      const r = deck._eqSliderRects[band];
+      if(!r) continue;
+
+      if(x >= r.x && x <= r.x+r.width && y >= r.y-10 && y <= r.y+r.height+10){
+        ensureAudioGraph(deckName);
+
+        eqDrag = { deckName, band, rect:r, pointerId:event.pointerId };
+
+        try{
+          canvas.setPointerCapture(event.pointerId);
+        }catch(error){}
+
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
+
+    /* Clic dans la zone EQ mais pas exactement sur un slider : on bloque quand même le seek. */
     event.preventDefault();
     event.stopPropagation();
     return;
@@ -2238,6 +2325,27 @@ canvas.addEventListener("pointerdown",event => {
   event.stopPropagation();
 },{passive:false});
 
+canvas.addEventListener("pointermove",event => {
+  if(eqDrag && event.pointerId === eqDrag.pointerId){
+    const rect = canvas.getBoundingClientRect();
+    const y = event.clientY - rect.top;
+
+    const r = eqDrag.rect;
+    const clampedY = Math.max(r.y, Math.min(r.y+r.height, y));
+    const ratio = 1 - ((clampedY - r.y) / r.height);
+    const value = Math.round(ratio*30 - 15);
+
+    applyEqValue(eqDrag.deckName, eqDrag.band, value);
+
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+
+  if(!drag || event.pointerId !== drag.pointerId){
+    return;
+  }
+  
 canvas.addEventListener("pointermove",event => {
   if(!drag || event.pointerId !== drag.pointerId){
     return;
@@ -2297,6 +2405,21 @@ canvas.addEventListener("pointermove",event => {
   event.preventDefault();
   event.stopPropagation();
 },{passive:false});
+
+function finishDrag(event){
+  if(eqDrag && (!event || event.pointerId === eqDrag.pointerId)){
+    try{
+      if(event && canvas.hasPointerCapture(event.pointerId)){
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    }catch(error){}
+    eqDrag = null;
+    return;
+  }
+
+  if(!drag){
+    return;
+  }
   
 function finishDrag(event){
   if(!drag){
