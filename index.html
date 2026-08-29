@@ -301,12 +301,14 @@ body.compact-mode .controls{
 
 body.compact-mode .controls-row{
   display:flex;
-  gap:3px;
+  gap:4px;
+  width:100%;
 }
 
 body.compact-mode .controls button{
-  padding:2px 4px;
-  font-size:8px;
+  padding:7px 4px;
+  font-size:11px;
+  min-height:30px;
 }
 
 body.compact-mode #canvas{
@@ -315,7 +317,14 @@ body.compact-mode #canvas{
   width:auto;
   height:auto;
 }
-  
+
+body.compact-mode .controls-row button{
+  flex:1 1 0;
+  padding:6px 4px;
+  font-size:11px;
+  border-radius:6px;
+}
+
 @media(max-width:850px){
   .layout{grid-template-columns:1fr;height:auto}
   .deck-list{height:500px}
