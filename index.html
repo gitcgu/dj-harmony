@@ -548,7 +548,11 @@ function createDeck(){
     chain: "idle",
     seeking: false,
     seekTarget: null,
-    loop: { active:false, beatsCount:0, startTime:0, endTime:0 }
+    loop: { active:false, beatsCount:0, startTime:0, endTime:0 },
+    eqValues: { high:0, mid:0, low:0 },
+    eq: null,
+    audioGraphReady: false
+
   };
 }
 
@@ -1911,6 +1915,45 @@ function draw(){
   //   ctx.fillStyle = colors[deckName];
  //   ctx.font = "bold 18px Arial";
  //   ctx.fillText(deckName,12,top+24);
+    
+       /* rempalcer par 3 sliders EQ verticaux (Aigus / Médiums / Graves) */
+    const eqZoneWidth = 90;
+    const eqZoneTop = top + 10;
+    const eqZoneHeight = rowHeight - 30;
+    const sliderWidth = 8;
+    const sliderGap = 20;
+    const bands = ["high","mid","low"];
+
+    deck._eqSliderRects = deck._eqSliderRects || {};
+
+    bands.forEach((band,bIndex) => {
+      const sx = 15 + bIndex*sliderGap;
+      const sy = eqZoneTop;
+      const sh = eqZoneHeight;
+
+      ctx.strokeStyle = "rgba(255,255,255,.2)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx, sy+sh);
+      ctx.stroke();
+
+      const value = deck.eqValues[band];
+      const ratio = (value + 15) / 30;
+      const cursorY = sy + sh - (ratio*sh);
+
+      ctx.fillStyle = colors[deckName];
+      ctx.beginPath();
+      ctx.arc(sx, cursorY, 6, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      deck._eqSliderRects[band] = { x:sx-8, y:sy, width:16, height:sh };
+    });
+
 
     if(!deck.track || !deck.loaded){
       ctx.fillStyle = "#526078";
