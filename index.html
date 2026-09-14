@@ -467,11 +467,11 @@ body.compact-mode #play-C{
   <br>
   <b>SEEK:</b> click + drag horizontally on line A, B or C to actually move the playback position.
   <br>
-  <b>Playback:</b> start = first beat of the _beat.json; end = last beat of the _beat.json.
+  <b>Playback:</b> start = first beat of the _beat.j; end = last beat of the _beat.j.
   <br>
   <b>Auto:</b> infinite playback A → B → C → A → B → C → ... with a 30-second overlap/crossfade.
   <br>
-  <b>NEXT:</b> selection based on original_bpm + KEY from catalogue.json.
+  <b>NEXT:</b> selection based on original_bpm + KEY from catalogue.j.
 </div>
 
 <script>
@@ -481,8 +481,8 @@ body.compact-mode #play-C{
    CONFIGURATION
    ============================================================ */
 
-/* const BEAT_DIR = "/SONS_MP3_pied_key/";
-const MP3_DIR = "/SONS_MP3/"; */
+/* const BEAT_DIR = "/S_MP3_pied_key/";
+const MP3_DIR = "/S_MP3/"; */
 
 const BEAT_DIR = "https://storage.googleapis.com/musica-mp3-bucket/beat/";
 const MP3_DIR = "https://storage.googleapis.com/musica-mp3-bucket/";
@@ -677,7 +677,7 @@ function truncateTitle(text,maxLength){
 const WAVEFORM_DIR = "https://storage.googleapis.com/musica-mp3-bucket/waveforms/";
 
 function waveformFileName(track){
-  return String(track.file).replace(/\.mp3$/i, ".json");
+  return String(track.file).replace(/\.mp3$/i, ".j");
 }
 
 async function fetchWaveformWithFallback(filename){
@@ -692,7 +692,7 @@ async function fetchWaveformWithFallback(filename){
       const response = await fetch(url);
 
       if(response.ok){
-        return await response.json();
+        return await response.j();
       }
     }catch(error){
       /* on tente l'essai suivant */
@@ -741,19 +741,19 @@ async function loadWaveform(deckName, track){
   }
 
   const filename = waveformFileName(track);
-  const json = await fetchWaveformWithFallback(filename);
+  const j = await fetchWaveformWithFallback(filename);
 
-  if(!json || !Array.isArray(json.data)){
+  if(!j || !Array.isArray(j.data)){
     console.warn("[WAVEFORM] introuvable :",filename);
     waveformCache.set(cacheKey, null);
     return;
   }
 
-  const sampleRate = Number(json.sample_rate) || 48000;
-  const samplesPerPixel = Number(json.samples_per_pixel) || 256;
+  const sampleRate = Number(j.sample_rate) || 48000;
+  const samplesPerPixel = Number(j.samples_per_pixel) || 256;
   const secondsPerPixel = samplesPerPixel / sampleRate;
 
-  const canvas = renderWaveformOffscreen(json.data, "#ffffff");
+  const canvas = renderWaveformOffscreen(j.data, "#ffffff");
 
   const entry = { canvas, secondsPerPixel };
   waveformCache.set(cacheKey, entry);
@@ -770,18 +770,18 @@ async function loadWaveform(deckName, track){
 
 async function loadCatalogue(){
   const response = await fetch(
-    BEAT_DIR + "catalogue.json?t=" + Date.now(),
+    BEAT_DIR + "catalogue.j?t=" + Date.now(),
     {cache:"no-store"}
   );
 
   if(!response.ok){
-    throw new Error("catalogue.json introuvable (" + response.status + ")");
+    throw new Error("catalogue.j introuvable (" + response.status + ")");
   }
 
-  const data = await response.json();
+  const data = await response.j();
 
   if(!Array.isArray(data)){
-    throw new Error("catalogue.json doit contenir un tableau.");
+    throw new Error("catalogue.j doit contenir un tableau.");
   }
 
   const result = [];
@@ -802,7 +802,7 @@ async function loadCatalogue(){
   }
 
   if(!result.length){
-    throw new Error("catalogue.json est vide.");
+    throw new Error("catalogue.j est vide.");
   }
 
   return result;
@@ -1516,7 +1516,7 @@ function monitor(deckName){
     const currentSecond = Math.floor(deck.audio.currentTime);
     if(deck._lastDisplayedSecond !== currentSecond){
       deck._lastDisplayedSecond = currentSecond;
-      state(deckName,"LECTURE • fin " + formatRemaining(deck));
+      state(deckName,"READ • end " + formatRemaining(deck));
     }
   }
   if(deck.audio.currentTime >= deck.endBeat){
